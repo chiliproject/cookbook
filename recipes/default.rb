@@ -7,6 +7,5 @@ include_recipe "chiliproject::database"
 instances = Chef::DataBag.load("chiliproject")
 instances.each do |inst|
   chiliproject instance['id']
-    instance inst
-  end
+  instance inst
 end

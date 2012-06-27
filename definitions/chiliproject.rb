@@ -214,7 +214,7 @@ define :chiliproject, :name => "default", :instance => {} do
       template "#{deploy_to}/shared/database_backup.cnf" do
         source "database_backup.cnf.erb"
         owner chili_user
-        group chili_group,
+        group chili_group
         mode '0400'
         variables :db => db
       end
@@ -222,7 +222,7 @@ define :chiliproject, :name => "default", :instance => {} do
       template "#{deploy_to}/.pg_pass" do
         source "pgpass.erb"
         owner chili_user
-        group chili_group,
+        group chili_group
         mode '0400'
         variables :db => db
       end
@@ -391,5 +391,4 @@ define :chiliproject, :name => "default", :instance => {} do
     end
   end
 end
-
-
+end
