@@ -1,0 +1,18 @@
+#-- encoding UTF-8
+
+# ChiliProject Additional Environment Configuration
+#
+# This script was automatically created by Chef.
+# All manual changes are going to be overridden
+#
+# Source: chiliproject::templates/default/additional_environment.rb.erb
+
+<% if @memcached_hosts %>
+# Setup Memcached
+config.cache_store = :mem_cache_store, <%= @memcached_hosts.collect{|h| "'h'"}.join ", " %>, :namespace => <%= @name %>
+<% end %>
+
+# Set path to log file
+config.logger = ActiveSupport::BufferedLogger.new("<%= "#{node['chiliproject']['log_dir']}/#{@name}" %>/#{Rails.env}.log")
+config.logger.auto_flushing = false
+config.logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)

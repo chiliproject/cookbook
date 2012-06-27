@@ -1,0 +1,192 @@
+<VirtualHost *:<%= @params[:http_port] %>>
+  ServerName <%= @application_name %>
+  ServerAlias <%= @params[:server_aliases].join(" ") %>
+
+  LogLevel warn
+  ErrorLog <%= @params[:log_dir] %>/<%= @application_name %>-error.log
+  CustomLog <%= @params[:log_dir] %>/<%= @application_name %>-access.log combined
+
+  DocumentRoot <%= @params[:docroot] %>
+  <Directory <%= @params[:docroot] %>>
+    Options SymLinksIfOwnerMatch
+    AllowOverride None
+
+    Order Deny,Allow
+    Deny from all
+    Allow from 127.0.0.1
+
+    PassengerEnabled on
+  </Directory>
+
+  <Location /server-status>
+    SetHandler server-status
+
+    Order Deny,Allow
+    Deny from all
+    Allow from 127.0.0.1
+  </Location>
+
+  # Deflate
+  <IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/x-javascript application/javascript text/x-js
+    BrowserMatch ^Mozilla/4 gzip-only-text/html
+    BrowserMatch ^Mozilla/4\.0[678] no-gzip
+    BrowserMatch MSIE\ [56] !no-gzip !gzip-only-text/html
+
+    # Fix for Apache Killer via mod_deflate bug (CVE-2011-3192)
+    # http://mail-archives.apache.org/mod_mbox/httpd-announce/201108.mbox/thread
+    SetEnvIf Range (,.*?){5,} bad-range=1
+    RequestHeader unset Range env=bad-range
+    # We always drop Request-Range; as this is a legacy
+    # dating back to MSIE3 and Netscape 2 and 3.
+    RequestHeader unset Request-Range
+  </IfModule>
+
+  <FilesMatch "\.(ico|pdf|flv|jpe?g|png|gif|js|css|swf)$">
+    ExpiresActive On
+    ExpiresDefault "access plus 1 year"
+  </FilesMatch>
+
+  # Allow access to the sys controller only from the local system
+  # There might be required additional IPs if the repository creation is done
+  # off-site
+  <Location /sys>
+    Order Deny,Allow
+    Deny from all
+    Allow from 127.0.0.1
+    Allow from <%= node[:ipaddress] %>
+  </Location>
+
+  RewriteEngine On
+  RewriteLog <%= @params[:log_dir] %>/<%= @application_name %>-rewrite.log
+  RewriteLogLevel 0
+
+  # Canonical host, <%= @application_name %>
+  RewriteCond %{HTTP_HOST}   !^<%= @application_name %> [NC]
+  RewriteCond %{HTTP_HOST}   !^$
+  RewriteCond %{REMOTE_ADDR} !^(127\..*)$
+  RewriteRule ^/(.*)$        <%= @params[:ssl] ? "https" : "http" %>://<%= @application_name %>/$1 [L,R=301]
+
+  <% if @params[:ssl] %>
+  # Force SSL
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{REMOTE_ADDR} !^(127\..*)$
+  RewriteRule (.*) https://<%= @application_name %>%{REQUEST_URI} [R=301,L]
+  <% end %>
+
+  <IfModule mod_dir.c>
+    # Perform redirects with missing trailing slash on directories by ourself
+    # to force https here. This assumes the behavior of an activated
+    # DirectorySlash directive.
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^(.+[^/])$          $1/  [R=301,L,QSA]
+  </IfModule>
+
+  # Check for maintenance file
+  RewriteCond %{REQUEST_URI} !\.(css|jpg|png|gif)$
+  RewriteCond %{DOCUMENT_ROOT}/system/maintenance.html -f
+  RewriteCond %{SCRIPT_FILENAME} !maintenance.html
+  RewriteRule ^.*$ /system/maintenance.html [L]
+</VirtualHost>
+
+<% if @params[:ssl] %>
+<VirtualHost *:<%= @params[:https_port] %>>
+  ServerName <%= @application_name %>
+  ServerAlias <%= @params[:server_aliases].join(" ") %>
+
+  LogLevel warn
+  ErrorLog <%= @params[:log_dir] %>/<%= @application_name %>-error.log
+  CustomLog <%= @params[:log_dir] %>/<%= @application_name %>-access.log combined
+
+  SSLEngine On
+  SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL
+  SSLCertificateFile <%= @params[:ssl_certificate_file] %>
+  SSLCertificateKeyFile <%= @params[:ssl_key_file] %>
+  <% if @params[:ssl_ca_certificate_file] %>
+  SSLCACertificateFile <%= @params[:ssl_ca_certificate_file] %>
+  <% end %>
+  RequestHeader set X_FORWARDED_PROTO 'https'
+
+  DocumentRoot <%= @params[:docroot] %>
+  <Directory <%= @params[:docroot] %>>
+    Options SymLinksIfOwnerMatch
+    AllowOverride None
+
+    Order Deny,Allow
+    Allow from all
+  </Directory>
+
+  <% @params[:passenger_paths].each do |path| %>
+  RailsBaseURI <%= path %>
+  <% end %>
+
+  # Deflate
+  <IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css application/x-javascript application/javascript text/x-js
+    BrowserMatch ^Mozilla/4 gzip-only-text/html
+    BrowserMatch ^Mozilla/4\.0[678] no-gzip
+    BrowserMatch MSIE\ [56] !no-gzip !gzip-only-text/html
+
+    # Fix for Apache Killer via mod_deflate bug (CVE-2011-3192)
+    # http://mail-archives.apache.org/mod_mbox/httpd-announce/201108.mbox/thread
+    SetEnvIf Range (,.*?){5,} bad-range=1
+    RequestHeader unset Range env=bad-range
+    # We always drop Request-Range; as this is a legacy
+    # dating back to MSIE3 and Netscape 2 and 3.
+    RequestHeader unset Request-Range
+  </IfModule>
+
+  <FilesMatch "\.(ico|pdf|flv|jpe?g|png|gif|js|css|swf)$">
+    ExpiresActive On
+    ExpiresDefault "access plus 1 year"
+  </FilesMatch>
+
+  # Allow access to the sys controller only from the local system
+  # There might be required additional IPs if the repository creation is done
+  # off-site
+  <Location /sys>
+    Order Deny,Allow
+    Deny from all
+    Allow from 127.0.0.1
+    Allow from <%= node[:ipaddress] %>
+  </Location>
+
+  RewriteEngine On
+  RewriteLog <%= @params[:log_dir] %>/<%= @application_name %>-rewrite.log
+  RewriteLogLevel 0
+
+  # Canonical host, <%= @application_name %>
+  RewriteCond %{HTTP_HOST}   !^<%= @application_name %> [NC]
+  RewriteCond %{HTTP_HOST}   !^$
+  RewriteRule ^/(.*)$        https://<%= @application_name %>/$1 [L,R=301]
+
+  # Check for maintenance file
+  RewriteCond %{REQUEST_URI} !\.(css|jpg|png|gif)$
+  RewriteCond %{DOCUMENT_ROOT}/system/maintenance.html -f
+  RewriteCond %{SCRIPT_FILENAME} !maintenance.html
+  RewriteRule ^.*$ /system/maintenance.html [L]
+
+  <IfModule mod_dir.c>
+    # Perform redirects with missing trailing slash on directories by ourself
+    # to force https here. This assumes the behavior of an activated
+    # DirectorySlash directive.
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^(.+[^/])$          $1/  [R=301,L,QSA]
+  </IfModule>
+
+  # Rewrite index to check for static
+  RewriteCond  %{THE_REQUEST} ^(GET|HEAD)
+  RewriteCond  %{DOCUMENT_ROOT}/index.html -f
+  RewriteRule  ^/?$ /index.html [QSA,L]
+
+  # Rewrite to check for Rails non-html cached pages (i.e. xml, json, atom, etc)
+  RewriteCond  %{THE_REQUEST} ^(GET|HEAD)
+  RewriteCond  %{DOCUMENT_ROOT}%{REQUEST_URI} -f
+  RewriteRule  ^(.*)$ $1 [QSA,L]
+
+  # Rewrite to check for Rails cached html page
+  RewriteCond  %{THE_REQUEST} ^(GET|HEAD)
+  RewriteCond  %{DOCUMENT_ROOT}%{REQUEST_URI}.html -f
+  RewriteRule  ^(.*)$ $1.html [QSA,L]
+</VirtualHost>
+<% end %>

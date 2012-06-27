@@ -1,0 +1,18 @@
+{
+  "id": "default",
+
+  "base_uri": "https://example.com",
+
+  "repository": "https://github.com/chiliproject/chiliproject.git",
+  "revision": "v3.3.2",
+  "ignored_bundler_groups": ["rmagick"],
+  "force_deploy": false,
+  "migrate": true,
+
+  "database": {
+    "password": "super secret"
+  },
+  "session": {
+    "secret": "supersecretsupersecretsupersecretsupersecretsupersecret"
+  }
+}

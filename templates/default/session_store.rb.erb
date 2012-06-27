@@ -1,0 +1,12 @@
+#-- encoding UTF-8
+
+# ChiliProject session configuration
+#
+# This script was automatically created by Chef.
+# All manual changes are going to be overridden
+#
+# Source: chiliproject::templates/default/session_store.rb.erb
+
+ActionController::Base.session = {
+<%= @session_config.sort.collect{|k, v| "  :#{k.to_s} => #{v.inspect}"}.join(",\n") %>
+}
