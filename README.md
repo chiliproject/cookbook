@@ -63,7 +63,7 @@ Specify any memcached hosts which are used for caching. You can either specify d
 
 * `node[:chiliproject][:apache][:docroot]` - The docroot where the directories with symlinks are created for sub-path installs. This setting is irrelevant for root-path instances.
 * `node[:chiliproject][:apache][:cookbook]` - The cookbook to search for a template for the Apache config
-* `node:chiliproject][:apache][:template]` - The template for the Apache config in the above cookbook.
+* `node[:chiliproject][:apache][:template]` - The template for the Apache config in the above cookbook.
 
 # Instances
 
