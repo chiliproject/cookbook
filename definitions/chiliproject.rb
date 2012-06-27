@@ -150,11 +150,12 @@ define :chiliproject, :name => "default", :instance => {} do
       'domain' => node['fqdn'],
     }
     if (login = inst_cfg.has_key?('login') ? inst_cfg['login'] : node_cfg['login'])
-    cfg['smtp_settings'].merge!({
-      'login' => login,
-      "user_name" => inst_cfg['user_name'] || node_cfg['user_name'],
-      "user_name" => inst_cfg['password'] || node_cfg['password']
-    })
+      cfg['smtp_settings'].merge!({
+        'login' => login,
+        "user_name" => inst_cfg['user_name'] || node_cfg['user_name'],
+        "user_name" => inst_cfg['password'] || node_cfg['password']
+      })
+    end
   end
 
   configuration_development = {'email_delivery' => {}}
@@ -168,7 +169,7 @@ define :chiliproject, :name => "default", :instance => {} do
   prod_env = ['test', 'development'].include?(rails_env) ? 'production' : rails_env
   configuration = {
     'default' => configuration_default,
-     prod_env => configuration_production,
+    prod_env => configuration_production,
     'development' => configuration_development,
     'test' => configuration_test
   }
@@ -214,7 +215,7 @@ define :chiliproject, :name => "default", :instance => {} do
       template "#{deploy_to}/shared/database_backup.cnf" do
         source "database_backup.cnf.erb"
         owner chili_user
-        group chili_group,
+        group chili_group
         mode '0400'
         variables :db => db
       end
@@ -222,7 +223,7 @@ define :chiliproject, :name => "default", :instance => {} do
       template "#{deploy_to}/.pg_pass" do
         source "pgpass.erb"
         owner chili_user
-        group chili_group,
+        group chili_group
         mode '0400'
         variables :db => db
       end
@@ -323,7 +324,7 @@ define :chiliproject, :name => "default", :instance => {} do
       # Backup existing databases before migration
 
       if (inst.has_key('migrate') ? inst['migrate'] : node['chiliproject']['migrate']) &&
-         (inst.has_key('backup_before_migration') ? inst['backup_before_migration'] : node['chiliproject']['database']['backup_before_migration'])
+        (inst.has_key('backup_before_migration') ? inst['backup_before_migration'] : node['chiliproject']['database']['backup_before_migration'])
 
         case db['adapter']
         when "mysql2"
@@ -369,7 +370,7 @@ define :chiliproject, :name => "default", :instance => {} do
       end
     end
 
-    symlink_before_migrate ({
+    symlink_before_migrate({
       "database.yml" => "config/database.yml",
       "configuration.yml" => "config/configuration.yml",
       "session_store.rb" => "config/initializers/session_store.rb",
@@ -391,5 +392,3 @@ define :chiliproject, :name => "default", :instance => {} do
     end
   end
 end
-
-

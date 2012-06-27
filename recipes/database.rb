@@ -19,12 +19,12 @@ instances.each do |inst|
   # on the database box if desired to prevent the superuser credentials to be
   # passed over the wire and to be present on this box
   unless db['create_if_missing']
-    log("Not attempting to create database #{{db['database']}}"){level :info}
+    log("Not attempting to create database #{db['database']}"){level :info}
     next
   end
 
   db_connection_info = {
-    :host => db['host']
+    :host => db['host'],
     :username => db['superuser'],
     :password => db['superuser_password']
   }
