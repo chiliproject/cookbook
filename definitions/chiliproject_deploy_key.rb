@@ -34,12 +34,13 @@ define :chiliproject_deploy_key, :name => "default", :instance => {} do
     template "#{deploy_to}/.netrc" do
       source "netrc.erb"
       variables ({
-        :hostname => inst['netrc']['hostname']
-        :username => inst['netrc']['username']
+        :hostname => inst['netrc']['hostname'],
+        :username => inst['netrc']['username'],
         :password => inst['netrc']['password']
       })
       owner chili_user
       group chili_group
       mode '0400'
     end
+  end
 end
