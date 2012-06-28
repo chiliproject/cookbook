@@ -65,7 +65,7 @@ module ChiliProject
         hash['port'] ||= port
 
         if !hash['password'] || hash['password'].strip == ""
-          raise "A ChiliProject database needs a password!"
+          raise "The ChiliProject instance #{instance['id']} needs a password!"
         end
       end
 
