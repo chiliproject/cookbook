@@ -28,7 +28,8 @@ module ChiliProject
 
         hosts.collect do |host|
           node = Node.new
-          node.name(host)
+          node.name host
+          node.hostname host
           node.ipaddress host
         end
       end
@@ -59,7 +60,7 @@ module ChiliProject
 
       hash['database'] ||= db_slug
       unless hash['adapter'] == "sqlite3"
-        hash['host'] = get_hostname(instance, 'memcached', 'role', 'hosts')
+        hash['host'] = get_hosts(instance, 'database', 'role', 'hosts').first.ipaddress
         hash['username'] ||= db_slug
         hash['port'] ||= port
 
