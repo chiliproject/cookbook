@@ -27,7 +27,7 @@ module ChiliProject
         hosts = [hosts].flatten
 
         hosts.collect do |host|
-          node = Node.new
+          node = Chef::Node.new
           node.name host
           node.hostname host
           node.ipaddress host
