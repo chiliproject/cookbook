@@ -1,6 +1,6 @@
 self.class.send(:include, ChiliProject::Helpers)
 
-instances = Chef::DataBag.load("chiliproject")
+instances = Chef::DataBag.load("chiliproject").values
 instances.each do |inst|
   db = db_hash(inst)
 
