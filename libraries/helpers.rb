@@ -14,23 +14,23 @@ module ChiliProject
 
     def get_hosts(instance, prefix=[], role_key="role", hostname_key="hostname")
       prefix = [prefix].flatten
-      instance_parent = prefix.inject(instance){|h, k| h.send(:[], k)}
-      node_parent = prefix.inject(node['chiliproject']){|h, k| h.send(:[], k)}
+      instance_parent = prefix.inject(instance){|h, k| h.send(:[], k)} || {}
+      node_parent = prefix.inject(node['chiliproject']){|h, k| h.send(:[], k)} || {}
 
       role = instance_parent.has_key?(role_key) ? instance_parent[role_key] : node_parent[role_key]
       if role
-        nodes = search(:node, "role:#{role} AND chef_environment:#{node.chef_environment}")
-        return nodes.collect(&:ipaddress)
+        search(:node, "role:#{role} AND chef_environment:#{node.chef_environment}")
       else
         hosts = instance_parent[hostname_key]
         hosts ||= node_parent[hostname_key]
-        hosts = [hosts].flatten
+        hosts = [hosts].flatten.compact
 
         hosts.collect do |host|
           node = Chef::Node.new
           node.name host
           node.hostname host
           node.ipaddress host
+          node
         end
       end
     end

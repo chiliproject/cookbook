@@ -140,8 +140,8 @@ define :chiliproject, :name => "default", :instance => {} do
 
   configuration_production = {'email_delivery' => {}}
   configuration_production['email_delivery'].tap do |cfg|
-    node_cfg = node['chiliproject']['email_delivery']
-    inst_cfg = inst['email_delivery']
+    node_cfg = node['chiliproject']['email_delivery'] || {}
+    inst_cfg = inst['email_delivery'] || {}
 
     cfg['delivery_method'] = :async_smtp
     cfg['smtp_settings'] = {
