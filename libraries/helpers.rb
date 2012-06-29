@@ -5,8 +5,8 @@ module ChiliProject
     def base_uri(instance)
       return instance['base_uri'] if instance['base_uri'].is_a?(URI)
 
-      base_uri = instance['base_uri'] ? URI.parse(instance['base_uri']) : URI.parse("")
-      base_uri.hostname ||= instance['id'].gsub(/_/, '.')
+      base_uri = instance['base_uri'] ? URI(instance['base_uri']) : URI("")
+      base_uri.host ||= instance['id'].gsub(/_/, '.')
       base_uri.path ||= "/"
 
       instance['base_uri'] = base_uri
