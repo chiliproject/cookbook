@@ -187,13 +187,13 @@ define :chiliproject, :name => "default", :instance => {} do
   # Get the merged config hash from node and instance
   db = db_hash(inst)
 
-  # generate additional config for SSL connectivity
-  if db_hash_for_database_yml.delete(:ssl)
-    # TODO: setup SSL for database connectivity
-  end
   # Cleanup internal keys
   db_hash_for_database_yml = db.reject do |k, v|
     %w[create_if_missing backup_before_migration].include?(k.to_s)
+  end
+  # generate additional config for SSL connectivity
+  if db_hash_for_database_yml.delete(:ssl)
+    # TODO: setup SSL for database connectivity
   end
 
   database_yml = {rails_env => db_hash_for_database_yml}
