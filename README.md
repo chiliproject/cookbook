@@ -28,7 +28,7 @@ This is the default configuration for the database connections for all instances
 * `node[:chiliproject][:database][:ssl]` - Set to true if the app server should connect via SSL to the database. This is a no-op currently.
 
 * `node[:chiliproject][:database][:create_if_missing]` - Create the database and user on the server if it is missing when set to true
-* `node[:chiliproject][:database][:superuser]` - These are the credentials used to create the database if required (and`create_if_missing` is set to `true`). If not set, the defaults from the database cookbook are used for each DB type
+* `node[:chiliproject][:database][:superuser]` - These are the credentials used to create the database if required (and `create_if_missing` is set to `true`). You need to set these attributes when accessing a remote database!
 * `node[:chiliproject][:database][:superuser_password]`
 * `node[:chiliproject][:database][:backup_before_migration]` - Create a full database backup before each migration. Backups are stored in `node[:chiliproject][:shared_dir]/<instance>/backup`
 
