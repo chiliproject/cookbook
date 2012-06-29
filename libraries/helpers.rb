@@ -60,9 +60,9 @@ module ChiliProject
 
       hash['database'] ||= db_slug
       unless hash['adapter'] == "sqlite3"
-        hash['host'] = get_hosts(instance, 'database', 'role', 'hosts').first.ipaddress
+        hash['host'] = get_hosts(instance, 'database', 'role', 'hostname').first.ipaddress
         hash['username'] ||= db_slug
-        hash['port'] ||= port
+        hash['port'] ||= db_port
 
         if !hash['password'] || hash['password'].strip == ""
           raise "The ChiliProject instance #{instance['id']} needs a password!"

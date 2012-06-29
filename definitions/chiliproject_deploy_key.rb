@@ -30,7 +30,7 @@ define :chiliproject_deploy_key, :name => "default", :instance => {} do
     end
   end
 
-  if inst.has_key('netrc')
+  if inst.has_key?('netrc')
     template "#{deploy_to}/.netrc" do
       source "netrc.erb"
       variables ({

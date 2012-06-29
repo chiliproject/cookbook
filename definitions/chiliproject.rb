@@ -97,7 +97,7 @@ define :chiliproject, :name => "default", :instance => {} do
     mode '0750'
   end
   file "#{node['chiliproject']['log_dir']}/#{inst['id']}/#{rails_env}.log" do
-    action :create_if_mising
+    action :create_if_missing
     owner chili_user
     group chili_group
     mode '0640'
@@ -286,7 +286,7 @@ define :chiliproject, :name => "default", :instance => {} do
     ssh_wrapper "#{app['deploy_to']}/deploy-ssh-wrapper" if inst['deploy_key']
     shallow_clone true
 
-    if (inst.has_key('migrate') ? inst['migrate'] : node['chiliproject']['migrate'])
+    if (inst.has_key?('migrate') ? inst['migrate'] : node['chiliproject']['migrate'])
       migrate true
       migration_command "bundle exec rake db:migrate db:migrate:plugins --trace"
     else

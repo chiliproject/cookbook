@@ -1,4 +1,4 @@
-define :rvmrc, :name => "default" do
+define :chiliproject_rvmrc, :name => "default" do
   deploy_to = "#{node['chiliproject']['root_dir']}/#{params[:name]}"
 
   chili_user = "chili_#{params[:name].downcase.gsub(/[^a-z]/, '_')}"
