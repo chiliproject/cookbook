@@ -81,6 +81,7 @@ instances.each do |inst|
       owner db['username']
       encoding db['encoding'].upcase
       connection_limit db['connection_limit']
+      template "template0"
       connection pg_connection_info
     end
 
