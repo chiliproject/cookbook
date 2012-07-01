@@ -31,7 +31,7 @@ end
 
 vhosts.each_pair do |hostname, paths|
   aliases = [node['fqdn']]
-  aliases += paths.values.collect{|inst| "#{inst['id']}.#{node['domain']}"}
+  aliases += paths.values.collect{|inst| inst['id'] + (node['domain'] ? ".#{node['domain']}" : "") }
   aliases << node['cloud']['public_hostname'] if node.has_key?("cloud")
 
   if paths.keys == ["/"]
