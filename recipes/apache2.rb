@@ -30,10 +30,8 @@ end
 # 2. For the matched vhosts, generate the apache config
 
 vhosts.each_pair do |hostname, paths|
-  aliases = [
-    "#{inst['id']}.#{node['domain']}",
-    node['fqdn'],
-  ]
+  aliases = [node['fqdn']]
+  aliases += paths.values.collect{|inst| "#{inst['id']}.#{node['domain']}"}
   aliases << node['cloud']['public_hostname'] if node.has_key?("cloud")
 
   if paths.keys == ["/"]
