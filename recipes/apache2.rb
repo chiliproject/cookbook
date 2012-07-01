@@ -46,7 +46,7 @@ vhosts.each_pair do |hostname, paths|
 
     deploy_to =  "#{node['chiliproject']['root_dir']}/#{inst['id']}"
 
-    webapp hostname do
+    web_app hostname do
       docroot "#{deploy_to}/current/public"
 
       server_name hostname
@@ -80,7 +80,7 @@ vhosts.each_pair do |hostname, paths|
       recursive true
     end
 
-    webapp_params = {}
+    web_app_params = {}
     paths.each_pair do |path, inst|
       aliases += inst['apache']['aliases'] if inst['apache']['aliases']
       deploy_to = "#{node['chiliproject']['root_dir']}/#{inst['id']}"
@@ -92,22 +92,22 @@ vhosts.each_pair do |hostname, paths|
       end
 
       http_port = inst['apache']['http_port'] || (base_uri(inst).scheme == "http" && base_uri(inst).port) || "80"
-      if webapp_params[:http_port].nil? || webapp_params[:http_port] == http_port
-        webapp_params[:http_port] = http_port
+      if web_app_params[:http_port].nil? || web_app_params[:http_port] == http_port
+        web_app_params[:http_port] = http_port
       else
         raise "Two or more ChiliProject sub path instances have different http ports defined"
       end
 
       https_port = inst['apache']['https_port'] || (base_uri(inst).scheme == "https" && base_uri(inst).port) || "443"
-      if webapp_params[:https_port].nil? || webapp_params[:https_port] == https_port
-        webapp_params[:https_port] = https_port
+      if web_app_params[:https_port].nil? || web_app_params[:https_port] == https_port
+        web_app_params[:https_port] = https_port
       else
         raise "Two or more ChiliProject sub path instances have different https ports defined"
       end
 
       %w(ssl_certificate_file ssl_key_file ssl_ca_certificate_file).each do |key|
-        if webapp_params[key.to_sym].nil? || webapp_params[keys.to_sym] == inst['apache'][key]
-          webapp_params[keys.to_sym] = inst['apache'][key]
+        if web_app_params[key.to_sym].nil? || web_app_params[keys.to_sym] == inst['apache'][key]
+          web_app_params[keys.to_sym] = inst['apache'][key]
         else
           raise "Two or more ChiliProject sub path instances have different #{key} keys"
         end
@@ -116,7 +116,7 @@ vhosts.each_pair do |hostname, paths|
       instances_to_restart << deploy_to
     end
 
-    webapp hostname do
+    web_app hostname do
       docroot apache_docroot
       server_name hostname
       server_aliases aliases.flatten.uniq.compact
@@ -124,7 +124,7 @@ vhosts.each_pair do |hostname, paths|
 
       passenger_paths paths.keys
 
-      webapp_params.each_pair do |k, v|
+      web_app_params.each_pair do |k, v|
         send(k, v)
       end
 
