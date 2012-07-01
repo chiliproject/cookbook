@@ -15,10 +15,10 @@ instances_to_restart = []
 instances.each do |inst|
   uri = base_uri(inst)
 
-  vhosts[uri.hostname] ||= {}
-  vhosts[uri.hostname][uri.path] = inst
+  vhosts[uri.host] ||= {}
+  vhosts[uri.host][uri.path] = inst
 
-  if vhosts[uri.hostname].keys.include?("/") && vhosts[uri.hostname].keys.count > 1
+  if vhosts[uri.host].keys.include?("/") && vhosts[uri.host].keys.count > 1
     raise "I can only deploy either one instances at the root path or multiple at sub-paths"
   end
 
