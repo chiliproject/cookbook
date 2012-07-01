@@ -205,8 +205,11 @@ define :chiliproject, :name => "default", :instance => {} do
     owner chili_user
     group chili_group
     mode '0400'
-    content db_hash_for_database_yml.to_yaml
+    content database_yml.to_yaml
   end
+
+  #############################################################################
+  # Database backup
 
   if db['backup_before_migration']
     # Prepare the database backup before the migration if configured
