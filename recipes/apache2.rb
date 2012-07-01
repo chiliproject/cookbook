@@ -39,6 +39,7 @@ vhosts.each_pair do |hostname, paths|
     # We have a vhost with a single instance on the root path
 
     inst = paths["/"]
+    inst_base_uri = base_uri(inst)
 
     aliases += inst['apache']['aliases'] if inst['apache']['aliases']
     aliases = aliases.flatten.uniq.compact
@@ -54,10 +55,10 @@ vhosts.each_pair do |hostname, paths|
 
       passenger_paths ["/"]
 
-      http_port inst['http_port'] || (base_uri(inst).scheme == "http" && base_uri(inst).port) || "80"
-      https_port inst['https_port'] || (base_uri(inst).scheme == "https" && base_uri(inst).port) || "443"
+      http_port inst['http_port'] || (inst_base_uri.scheme == "http" && inst_base_uri.port) || "80"
+      https_port inst['https_port'] || (inst_base_uri.scheme == "https" && inst_base_uri.port) || "443"
 
-      ssl (base_uri(inst).scheme == "https")
+      ssl (inst_base_uri.scheme == "https")
       ssl_certificate_file inst['ssl_certificate_file']
       ssl_key_file inst['ssl_key_file']
       ssl_ca_certificate_file inst['ssl_ca_certificate_file']
