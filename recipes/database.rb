@@ -2,6 +2,10 @@ self.class.send(:include, ChiliProject::Helpers)
 
 instances = Chef::DataBag.load("chiliproject").values
 instances.each do |inst|
+  rails_env = inst['rails_env']
+  rails_env ||= (node.chef_environment =~ /_default/ ? 'production' :  node.chef_environment)
+  node.run_state[:rails_env] = rails_env
+
   db = db_hash(inst)
 
   case db['adapter']
@@ -10,11 +14,9 @@ instances.each do |inst|
     chef_gem "mysql" # make the mysql gem available imediately
   when "postgresql"
     include_recipe "postgresql::client"
-  else
+  when "sqlite3"
     include_recipe "sqlite"
     package "libsqlite3-dev" # probably specific to Debian/Ubuntu
-    # nothing more to do
-    next
   else
     # nothing to do for unknown database type
     next
@@ -37,9 +39,8 @@ instances.each do |inst|
 
   case db['adapter']
   when "mysql2"
-    mysql_connection_info = {
-      :password => node['mysql']['server_root_password']
-    }.merge(db_connection_info)
+    mysql_connection_info = db_connection_info.dup
+    mysql_connection_info[:password] ||= node['mysql']['server_root_password']
 
     # Create the user
     mysql_database_user db['username'] do
@@ -51,7 +52,7 @@ instances.each do |inst|
     # Create the database
     mysql_database db['database'] do
       action :create
-      connection db_connection_info
+      connection mysql_connection_info
     end
     mysql_database "set encoding for #{db['database']}" do
       sql "ALTER DATABASE #{db['database']} CHARACTER SET #{db['encoding'].downcase}"
@@ -71,7 +72,7 @@ instances.each do |inst|
     mysql_database "flush privileges" do
       sql "FLUSH PRIVILEGES"
       action :query
-      connection db_connection_info
+      connection mysql_connection_info
     end
   when "postgresql"
     pg_connection_info = db_connection_info.merge({
@@ -101,6 +102,20 @@ instances.each do |inst|
       database_name db['database']
       privileges [:ALL]
       connection pg_connection_info
+    end
+  when "sqlite3"
+    chili_user = "chili_#{inst['id'].downcase.gsub(/[^a-z]/, '_')}"
+    chili_group = chili_user
+
+    directory File.dirname(db['database']) do
+      recursive true
+    end
+
+    file db['database'] do
+      owner chili_user
+      group chili_user
+      mode "0600"
+      backup false
     end
   end
 end

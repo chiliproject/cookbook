@@ -188,11 +188,17 @@ define :chiliproject, :name => "default", :instance => {} do
   db = db_hash(inst)
 
   # Cleanup internal keys
+  internal_keys = %w[create_if_missing backup_before_migration role superuser superuser_password hostname]
+  realdb_keys = %w[username password host port reconnect]
   db_hash_for_database_yml = db.reject do |k, v|
-    %w[create_if_missing backup_before_migration].include?(k.to_s)
+    if db['adapter'] == "sqlite3"
+      (internal_keys + realdb_keys).include?(k.to_s)
+    else
+      internal_keys.include?(k.to_s)
+    end
   end
   # generate additional config for SSL connectivity
-  if db_hash_for_database_yml.delete(:ssl)
+  if db_hash_for_database_yml.delete('ssl')
     # TODO: setup SSL for database connectivity
   end
 
@@ -367,6 +373,7 @@ define :chiliproject, :name => "default", :instance => {} do
             block do
               FileUtils::copy_file(db['database'], target_file)
             end
+            only_if { File.exist?(db['database']) }
             action :create
           end
         end

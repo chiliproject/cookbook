@@ -44,14 +44,14 @@ module ChiliProject
 
       case hash['adapter']
       when /sqlite/i
-        hash[:adapter] = "sqlite3"
+        hash['adapter'] = "sqlite3"
         db_slug = "#{node['chiliproject']['root_dir']}/#{instance['id']}/shared/#{node.run_state[:rails_env]}.db"
       when /mysql/i
-        hash[:adapter] = "mysql2"
+        hash['adapter'] = "mysql2"
         db_slug = "chili_#{instance['id'].downcase.gsub(/[^a-z]/, '_')}"[0..15]
         db_port = 3306
       when /postgres/i
-        hash[:adapter] = "postgresql"
+        hash['adapter'] = "postgresql"
         db_slug = "chili_#{instance['id'].downcase.gsub(/[^a-z]/, '_')}"
         db_port = 5432
       else
