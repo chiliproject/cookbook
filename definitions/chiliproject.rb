@@ -274,6 +274,22 @@ define :chiliproject, :name => "default", :instance => {} do
     instance inst
   end
 
+  # Find the bundler groups to install
+  ignored_bundler_groups = inst['ignored_bundler_groups'] || []
+  common_groups = %w[development test production]
+  database_groups = %w[mysql mysql2 postgres sqlite]
+
+  ignored_bundler_groups += (common_groups - [rails_env])
+  adapter_group = case db['adapter'].downcase
+    when 'postgresql' then "postgres"
+    when "sqlite3" then "sqlite"
+    else db['adapter'].downcase
+  end
+  ignored_bundler_groups += (database_groups - [adapter_group])
+
+  # install rmagick requirements only if required
+  include_recipe "imagemagick::rmagick" unless ignored_bundler_groups.include? "rmagick"
+
   deploy_target = deploy_to
   deploy_revision "ChiliProject #{inst['id']}" do
     repository inst['repository'] || "https://github.com/chiliproject/chiliproject.git"
@@ -296,28 +312,12 @@ define :chiliproject, :name => "default", :instance => {} do
       migrate false
     end
 
-    ignored_groups = inst['ignored_bundler_groups'] || []
     before_migrate do
       #########################################################################
       # Select the bundler groups and install them
 
-      common_groups = %w[development test production]
-      database_groups = %w[mysql mysql2 postgres sqlite]
-
-      ignored_groups += (common_groups - [rails_env])
-      adapter_group = case db['adapter'].downcase
-        when 'postgresql' then "postgres"
-        when "sqlite3" then "sqlite"
-        else db['adapter'].downcase
-      end
-      ignored_groups += (database_groups - [adapter_group])
-
-      unless ignored_groups.include? "rmagick"
-        include_recipe "imagemagick::rmagick"
-      end
-
       deployment_flag = File.exists?("#{deploy_target}/Gemfile.lock") ? "--deployment" : ""
-      execute "bundle install #{deployment_flag} --without #{ignored_groups.join(' ')}" do
+      execute "bundle install #{deployment_flag} --without #{ignored_bundler_groups.join(' ')}" do
         cwd release_path
         user 'root'
         group 'root'
