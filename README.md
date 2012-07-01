@@ -111,6 +111,7 @@ Instance attributes have always precedence.
   * `apache['http_port']` - Overwrite the port used for the HTTP vhost.
   * `apache['https_port']` - Overwrite the port used for the HTTPs vhost.
   * `apache['aliases']` - Additional hostnames which are added as server aliases. Must be an array.
+  * `apache['serve_aliases']` - If true, it allows the aliases to serve the page, else the cannonical host from the base_uri is enforced.
   * `apache['ssl_certificate_file']` - The path to the SSL certificate file when using SSL.
   * `apache['ssl_key_file']` - The path to the SSL key file when using SSL.
   * `apache['ssl_ca_certificate_file']` - The path to the SSL CS certificate file when using SSL.

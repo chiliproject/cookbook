@@ -64,6 +64,8 @@ vhosts.each_pair do |hostname, paths|
       ssl_key_file apache['ssl_key_file']
       ssl_ca_certificate_file apache['ssl_ca_certificate_file']
 
+      serve_aliases apache[:serve_aliases]
+
       template node['chiliproject']['apache']['template']
       cookbook node['chiliproject']['apache']['cookbook']
     end
@@ -111,7 +113,7 @@ vhosts.each_pair do |hostname, paths|
         raise "Two or more ChiliProject sub path instances have different https ports defined"
       end
 
-      %w(ssl_certificate_file ssl_key_file ssl_ca_certificate_file).each do |key|
+      %w(ssl_certificate_file ssl_key_file ssl_ca_certificate_file serve_aliases).each do |key|
         if web_app_params[key.to_sym].nil? || web_app_params[keys.to_sym] == apache[key]
           web_app_params[key.to_sym] = apache[key]
         else

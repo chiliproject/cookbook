@@ -1,3 +1,14 @@
+<%
+  def common_url(force_ssl=false)
+    if @params[:ssl] || force_ssl
+      port = ":#{@params[:https_port]}" unless @params[:https_port] == 443
+      "https://#{@application_name}#{port}"
+    else
+      port = ":#{@params[:http_port]}" unless @params[:http_port] == 80
+      "http://#{@application_name}#{port}"
+    end
+  end
+%>
 <VirtualHost *:<%= @params[:http_port] %>>
   ServerName <%= @application_name %>
   ServerAlias <%= @params[:server_aliases].join(" ") %>
@@ -74,17 +85,19 @@
   RewriteLog <%= @params[:log_dir] %>/<%= @application_name %>-rewrite.log
   RewriteLogLevel 0
 
+  <% if @params[:serve_aliases] %>
   # Canonical host, <%= @application_name %>
   RewriteCond %{HTTP_HOST}   !^<%= @application_name %> [NC]
   RewriteCond %{HTTP_HOST}   !^$
   RewriteCond %{REMOTE_ADDR} !^(127\..*)$
-  RewriteRule ^/(.*)$        <%= @params[:ssl] ? "https" : "http" %>://<%= @application_name %>/$1 [L,R=301]
+  RewriteRule ^/(.*)$        <%= common_url %>/$1 [L,R=301,QSA]
+  <% end %>
 
   <% if @params[:ssl] %>
   # Force SSL
   RewriteCond %{HTTPS} !=on
   RewriteCond %{REMOTE_ADDR} !^(127\..*)$
-  RewriteRule (.*) https://<%= @application_name %>%{REQUEST_URI} [R=301,L]
+  RewriteRule ^/(.*)$ <%= common_url(true) %>/$1 [R=301,L,QSA]
   <% end %>
 
   <IfModule mod_dir.c>
@@ -100,6 +113,21 @@
   RewriteCond %{DOCUMENT_ROOT}/system/maintenance.html -f
   RewriteCond %{SCRIPT_FILENAME} !maintenance.html
   RewriteRule ^.*$ /system/maintenance.html [L]
+
+  # Rewrite index to check for static
+  RewriteCond  %{THE_REQUEST} ^(GET|HEAD)
+  RewriteCond  %{DOCUMENT_ROOT}/index.html -f
+  RewriteRule  ^/?$ /index.html [QSA,L]
+
+  # Rewrite to check for Rails non-html cached pages (i.e. xml, json, atom, etc)
+  RewriteCond  %{THE_REQUEST} ^(GET|HEAD)
+  RewriteCond  %{DOCUMENT_ROOT}%{REQUEST_URI} -f
+  RewriteRule  ^(.*)$ $1 [QSA,L]
+
+  # Rewrite to check for Rails cached html page
+  RewriteCond  %{THE_REQUEST} ^(GET|HEAD)
+  RewriteCond  %{DOCUMENT_ROOT}%{REQUEST_URI}.html -f
+  RewriteRule  ^(.*)$ $1.html [QSA,L]
 </VirtualHost>
 
 <% if @params[:ssl] %>
@@ -168,10 +196,12 @@
   RewriteLog <%= @params[:log_dir] %>/<%= @application_name %>-rewrite.log
   RewriteLogLevel 0
 
+  <% if @params[:serve_aliases] %>
   # Canonical host, <%= @application_name %>
   RewriteCond %{HTTP_HOST}   !^<%= @application_name %> [NC]
   RewriteCond %{HTTP_HOST}   !^$
-  RewriteRule ^/(.*)$        https://<%= @application_name %>/$1 [L,R=301]
+  RewriteRule ^/(.*)$        <%= common_url(true) %>/$1 [L,R=301,QSA]
+  <% end %>
 
   # Check for maintenance file
   RewriteCond %{REQUEST_URI} !\.(css|jpg|png|gif)$
