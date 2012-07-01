@@ -384,7 +384,6 @@ define :chiliproject, :name => "default", :instance => {} do
 
   if node['chiliproject']['logrotate']
     logrotate_app "ChiliProject #{inst['id']}" do
-      cookbook "chiliproject"
       path "#{node['chiliproject']['log_dir']}/#{inst['id']}/*.log"
       frequence "weekly"
       rotate 8
