@@ -32,11 +32,15 @@ instances.each do |inst|
 
   case db['adapter']
   when "mysql2"
+    mysql_connection_info = {
+      :password => node['mysql']['server_root_password']
+    }.merge(db_connection_info)
+
     # Create the user
     mysql_database_user db['username'] do
       password db['password']
       action :create
-      connection db_connection_info
+      connection mysql_connection_info
     end
 
     # Create the database
@@ -47,7 +51,7 @@ instances.each do |inst|
     mysql_database "set encoding for #{db['database']}" do
       sql "ALTER DATABASE #{db['database']} CHARACTER SET #{db['encoding'].downcase}"
       action :query
-      connection db_connection_info
+      connection mysql_connection_info
     end
 
     # Grant the user full rights on the database
@@ -56,7 +60,7 @@ instances.each do |inst|
       database_name db['database']
       host '%'
       privileges [:ALL]
-      connection db_connection_info
+      connection mysql_connection_info
     end
 
     mysql_database "flush privileges" do
