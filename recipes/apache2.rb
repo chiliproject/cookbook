@@ -67,7 +67,7 @@ vhosts.each_pair do |hostname, paths|
       cookbook node['chiliproject']['apache']['cookbook']
     end
 
-    instances_to_restart << deploy_to
+    instances_to_restart << inst
   else
     ##########################################################################
     # We have a vhost with multiple instances on subpaths
@@ -113,7 +113,7 @@ vhosts.each_pair do |hostname, paths|
         end
       end
 
-      instances_to_restart << deploy_to
+      instances_to_restart << inst
     end
 
     web_app hostname do
@@ -137,9 +137,11 @@ end
 ##########################################################################
 # 3. restart instances if necessary
 
-instances_to_restart.uniq.each do |deploy_to|
+instances_to_restart.uniq.each do |inst|
+  deploy_to = "#{node['chiliproject']['root_dir']}/#{inst['id']}"
+
   if File.exists?("#{deploy_to}/current")
-    d = resource(:deploy_revision => "ChiliProject #{inst['id']}")
+    d = resources(:deploy_revision => "ChiliProject #{inst['id']}")
     d.restart_command do
       file "#{d.deploy_to}/current/tmp/restart.txt" do
         action :touch
