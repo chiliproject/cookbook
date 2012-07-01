@@ -41,7 +41,7 @@ vhosts.each_pair do |hostname, paths|
     inst = paths["/"]
     inst_base_uri = base_uri(inst)
 
-    aliases += inst['apache']['aliases'] if inst['apache']['aliases']
+    aliases += inst['apache']['aliases'] if inst['apache'] && inst['apache']['aliases']
     aliases = aliases.flatten.uniq.compact
 
     deploy_to =  "#{node['chiliproject']['root_dir']}/#{inst['id']}"
@@ -82,7 +82,7 @@ vhosts.each_pair do |hostname, paths|
 
     web_app_params = {}
     paths.each_pair do |path, inst|
-      aliases += inst['apache']['aliases'] if inst['apache']['aliases']
+      aliases += [inst['apache']['aliases']] if inst['apache'] && inst['apache']['aliases']
       deploy_to = "#{node['chiliproject']['root_dir']}/#{inst['id']}"
 
       link "apache_docroot/#{base_uri(inst).path}" do
