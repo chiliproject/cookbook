@@ -75,7 +75,7 @@ Instance attributes have always precedence.
 
 ## Instance attributes
 
-* `base_uri` - A URI which specifies how the instance can be reached later. You can specify the primary protocol (`http` or `https`), the port, hostname and path here. Note that multiple sub-paths are not supported right now.
+* `base_uri` - A URI which specifies how the instance can be reached later. You can specify the primary protocol (`http` or `https`), the port, hostname and path here. Note that nested sub-paths are not supported right now.
 * `repository` - The repository URL to retrieve ChiliProject from, by default `https://github.com/chiliproject/chiliproject.git`
 * `revision` - The revision to install. Can be either a SHA hash, a branch name or a tag. By default we use the `stable` branch.
 * `database` - Merged with the node attributes. See the description of the node database attributes for details.
