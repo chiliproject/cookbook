@@ -7,6 +7,7 @@ instances.each do |inst|
   case db['adapter']
   when "mysql2"
     include_recipe "mysql::client"
+    chef_gem "mysql" # make the mysql gem available imediately
   when "postgresql"
     include_recipe "postgresql::client"
   else
