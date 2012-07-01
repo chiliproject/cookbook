@@ -130,7 +130,7 @@ There are two recipes you need to concern yourself with:
 * When performing sub-path deployments, i.e., setting a `base_uri` to a URL with a path component, a bug present in Chef <= 0.10.10 prevents us from creating the required symlinks for the Apache+Passenger config. This is fixed with in [CHEF-3110](http://tickets.opscode.com/browse/CHEF-3110). Thus you need at least Chef 10.12.0 when all of these conditions apply:
   * You are using sub-path deployments
   * You are using the `chiliproject::apache2` cookbook for setting up Passenger
-* When trying to set a database encoding which doesn't which is different from the default `LC_CTYPE` with PostgreSQL, the database can not be created. The cause is [a bug in the database cookbook](http://tickets.opscode.com/browse/COOK-1401).
+* When trying to set a database encoding which is different from the default `LC_CTYPE` with PostgreSQL, the database can not be created. The cause is [a bug in the database cookbook](http://tickets.opscode.com/browse/COOK-1401).
 
 # License
 
