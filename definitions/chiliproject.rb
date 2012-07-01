@@ -223,7 +223,7 @@ define :chiliproject, :name => "default", :instance => {} do
         variables :db => db
       end
     when "postgresql"
-      template "#{deploy_to}/.pg_pass" do
+      template "#{deploy_to}/.pgpass" do
         source "pgpass.erb"
         owner chili_user
         group chili_group
@@ -326,8 +326,8 @@ define :chiliproject, :name => "default", :instance => {} do
       #########################################################################
       # Backup existing databases before migration
 
-      if (inst.has_key('migrate') ? inst['migrate'] : node['chiliproject']['migrate']) &&
-        (inst.has_key('backup_before_migration') ? inst['backup_before_migration'] : node['chiliproject']['database']['backup_before_migration'])
+      if (inst.has_key?('migrate') ? inst['migrate'] : node['chiliproject']['migrate']) &&
+        (inst.has_key?('backup_before_migration') ? inst['backup_before_migration'] : node['chiliproject']['database']['backup_before_migration'])
 
         case db['adapter']
         when "mysql2"
