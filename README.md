@@ -1,10 +1,12 @@
 # Chef Cookbook for ChiliProject
 
-This cookbook helps you to deploy one or more Chiliproject instances. Right now, it supports only a pre-packed ChiliProject source repiository. That means if you require any additional plugins, you have to put them into your source repository before installing it here.
+This cookbook helps you to deploy one or more Chiliproject instances. Right now, it supports only a pre-packed ChiliProject source repository. That means if you require any additional plugins, you have to put them into your source repository before installing it here.
 
-We support MySQL, Postgres and SQLite3 as a database. You can mix and match the database engnes between instances.
+We support MySQL, Postgres and SQLite3 as a database. You can mix and match the database engines between instances.
 
 All of the requirements are explicitly defined in the recipes. Every effort has been made to utilize official Opscode cookbooks.
+
+This cookbook requires Chef >= 10.12.0. See *Known Issues* for details
 
 # Attributes
 
@@ -67,15 +69,15 @@ Specify any memcached hosts which are used for caching. You can either specify d
 
 # Instances
 
-Instances can be configured using data bags, one for each instance. An example databag can be found in the `examples` directory. There you can define many attributes of the respective instance, some of which override the defaulkts set on the node.
+Instances can be configured using data bags, one for each instance. An example databag can be found in the `examples` directory. There you can define many attributes of the respective instance, some of which override the defaults set on the node.
 
 Instance attributes have always precedence.
 
 ## Instance attributes
 
-* `base_uri` - A URI which specifies how the instance can be reached later. You can specify the promary protocol (`http` or `https`), the port, hostname and path here. Note that multiple sub-paths are not supported right now.
+* `base_uri` - A URI which specifies how the instance can be reached later. You can specify the primary protocol (`http` or `https`), the port, hostname and path here. Note that multiple sub-paths are not supported right now.
 * `repository` - The repository URL to retrieve ChiliProject from, by default `https://github.com/chiliproject/chiliproject.git`
-* `revision` - The revisioon to install. Can be either a SHA hash, a rbanch name or a tag. By default we use the `stable` branch.
+* `revision` - The revision to install. Can be either a SHA hash, a branch name or a tag. By default we use the `stable` branch.
 * `database` - Merged with the node attributes. See the description of the node database attributes for details.
   * `database['password']` The password for connection to the database. You have to set the attribute for each instance!
   * `database['username']` - The name of the database user, defaults to `chili_<instance name`
@@ -85,7 +87,7 @@ Instance attributes have always precedence.
   * `session['key']` - The name of the cookie.
   * `session['session_path']` - The path scope of the session cookie, by default the same as the instance path
 * `configuration` - Set any allowed values of the configuration.yml file. Some restrictions apply. Please see the description in the node attributes section.
-* `email_delivery` - Configure the settings for email delivery, i.e. how to reach the SMTP server. This overrides the default sessings of the node. See there for more details.
+* `email_delivery` - Configure the settings for email delivery, i.e. how to reach the SMTP server. This overrides the default settings of the node. See there for more details.
   * `email_delivery[:hostname]` - Use either the `hostname` or the `role` to define the SMTP server to be used for sending mails. If the role is set, it has precedence
   * `email_delivery[:role]`
   * `email_delivery[:port]` - Port where the SMTP server listens.
@@ -99,11 +101,11 @@ Instance attributes have always precedence.
 * `force_deploy` - Force a full deployment even if the specified SHA hash is already deployed. By default `false`.
 * `migrate` - Run migrations if necessary. By default `true`.
 * `deploy_key` -  The private SSH key used for authenticating to the remote repository via SSH. Set this only if required.
-* `netrc` -  Necessary credentials to access private reporitory server over HTTP. Set this only if required.
+* `netrc` -  Necessary credentials to access private repository server over HTTP. Set this only if required.
   * `netrc['hostname']` - The hostname to authenticate to, i.e. the hostname of the repository server.
   * `netrc['username']` - The username used for authenticating to the remote repository
   * `netrc['password']` - The password used for authenticating to the remote repository
-* `ignored_bundler_groups` - An array of additional bundler groups to ignore. by default, we only install one database adapter and only the requiored environment groups.
+* `ignored_bundler_groups` - An array of additional bundler groups to ignore. by default, we only install one database adapter and only the required environment groups.
 * `apache` - Some additional configuration settings when deploying with apache
   * `apache['http_port']` - Overwrite the port used for the HTTP vhost.
   * `apache['https_port']` - Overwrite the port used for the HTTPs vhost.
@@ -119,8 +121,16 @@ It should be noted that in the `apache` group, when using sub-paths, all instanc
 This is still a little slim. But you get the gist...
 
 There are two recipes you need to concern yourself with:
-* default - Installs all configured instances to the node. If configured (`node['chiliproject']['database']['create_if_missing']`) it also creates the required database and database user. If you disable this,. you have to create them before running this recipe.
-* apache2 - Sets up an Apache2 server with Passenger for hosting all the instances. This is optional and we will probably provide additional configuration options in the future (e.g nginx + passenger, nginx + thin, ...)
+
+* `default` - Installs all configured instances to the node. If configured (`node['chiliproject']['database']['create_if_missing']`) it also creates the required database and database user. If you disable this,. you have to create them before running this recipe.
+* `apache2` - Sets up an Apache2 server with Passenger for hosting all the instances. This is optional and we will probably provide additional configuration options in the future (e.g nginx + passenger, nginx + thin, ...)
+
+# Known issues
+
+* When performing sub-path deployments, i.e., setting a `base_uri` to a URL with a path component, a bug present in Chef <= 0.10.10 prevents us from creating the required symlinks for the Apache+Passenger config. This is fixed with in [CHEF-3110](http://tickets.opscode.com/browse/CHEF-3110). Thus you need at least Chef 10.12.0 when all of these conditions apply:
+  * You are using sub-path deployments
+  * You are using the `chiliproject::apache2` cookbook for setting up Passenger
+* When trying to set a database encoding which doesn't which is different from the default `LC_CTYPE` with PostgreSQL, the database can not be created. The cause is [a bug in the database cookbook](http://tickets.opscode.com/browse/COOK-1401).
 
 # License
 
