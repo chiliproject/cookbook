@@ -11,7 +11,12 @@ instances.each do |inst|
   when "postgresql"
     include_recipe "postgresql::client"
   else
-    # nothing to do at all (for sqlite) or unknown database type
+    include_recipe "sqlite"
+    package "libsqlite3-dev" # probably specific to Debian/Ubuntu
+    # nothing more to do
+    next
+  else
+    # nothing to do for unknown database type
     next
   end
 
