@@ -40,8 +40,9 @@ vhosts.each_pair do |hostname, paths|
 
     inst = paths["/"]
     inst_base_uri = base_uri(inst)
+    apache = inst['apache'] || {}
 
-    aliases += inst['apache']['aliases'] if inst['apache'] && inst['apache']['aliases']
+    aliases += apache['aliases'] if apache['aliases']
     aliases = aliases.flatten.uniq.compact
 
     deploy_to =  "#{node['chiliproject']['root_dir']}/#{inst['id']}"
@@ -55,13 +56,13 @@ vhosts.each_pair do |hostname, paths|
 
       passenger_paths ["/"]
 
-      http_port inst['http_port'] || (inst_base_uri.scheme == "http" && inst_base_uri.port) || "80"
-      https_port inst['https_port'] || (inst_base_uri.scheme == "https" && inst_base_uri.port) || "443"
+      http_port apache['http_port'] || (inst_base_uri.scheme == "http" && inst_base_uri.port) || "80"
+      https_port apache['https_port'] || (inst_base_uri.scheme == "https" && inst_base_uri.port) || "443"
 
       ssl (inst_base_uri.scheme == "https")
-      ssl_certificate_file inst['ssl_certificate_file']
-      ssl_key_file inst['ssl_key_file']
-      ssl_ca_certificate_file inst['ssl_ca_certificate_file']
+      ssl_certificate_file apache['ssl_certificate_file']
+      ssl_key_file apache['ssl_key_file']
+      ssl_ca_certificate_file apache['ssl_ca_certificate_file']
 
       template node['chiliproject']['apache']['template']
       cookbook node['chiliproject']['apache']['cookbook']
@@ -76,29 +77,34 @@ vhosts.each_pair do |hostname, paths|
     directory apache_docroot do
       owner "root"
       group node['apache']['group']
-      mode "755"
+      mode "0755"
       recursive true
     end
 
     web_app_params = {}
     paths.each_pair do |path, inst|
-      aliases += [inst['apache']['aliases']] if inst['apache'] && inst['apache']['aliases']
+      apache = inst['apache'] || {}
+
+      aliases += [apache['aliases']] if apache['aliases']
       deploy_to = "#{node['chiliproject']['root_dir']}/#{inst['id']}"
 
-      link "apache_docroot/#{base_uri(inst).path}" do
+      chili_user = "chili_#{inst['id'].downcase.gsub(/[^a-z]/, '_')}"
+      chili_group = chili_user
+
+      link "#{apache_docroot}#{base_uri(inst).path}" do
         to "#{deploy_to}/current/public"
-        owner "chili_#{inst['id'].downcase.gsub(/[^a-z]/, '_')}"
-        group "chili_#{inst['id'].downcase.gsub(/[^a-z]/, '_')}"
+        owner chili_user
+        group chili_group
       end
 
-      http_port = inst['apache']['http_port'] || (base_uri(inst).scheme == "http" && base_uri(inst).port) || "80"
+      http_port = apache['http_port'] || (base_uri(inst).scheme == "http" && base_uri(inst).port) || "80"
       if web_app_params[:http_port].nil? || web_app_params[:http_port] == http_port
         web_app_params[:http_port] = http_port
       else
         raise "Two or more ChiliProject sub path instances have different http ports defined"
       end
 
-      https_port = inst['apache']['https_port'] || (base_uri(inst).scheme == "https" && base_uri(inst).port) || "443"
+      https_port = apache['https_port'] || (base_uri(inst).scheme == "https" && base_uri(inst).port) || "443"
       if web_app_params[:https_port].nil? || web_app_params[:https_port] == https_port
         web_app_params[:https_port] = https_port
       else
@@ -106,8 +112,8 @@ vhosts.each_pair do |hostname, paths|
       end
 
       %w(ssl_certificate_file ssl_key_file ssl_ca_certificate_file).each do |key|
-        if web_app_params[key.to_sym].nil? || web_app_params[keys.to_sym] == inst['apache'][key]
-          web_app_params[keys.to_sym] = inst['apache'][key]
+        if web_app_params[key.to_sym].nil? || web_app_params[keys.to_sym] == apache[key]
+          web_app_params[key.to_sym] = apache[key]
         else
           raise "Two or more ChiliProject sub path instances have different #{key} keys"
         end
