@@ -51,6 +51,8 @@ instances.each do |inst|
 
     # Create the database
     mysql_database db['database'] do
+      encoding db['encoding'].downcase
+      collation db['collation']
       action :create
       connection mysql_connection_info
     end
@@ -90,7 +92,8 @@ instances.each do |inst|
     postgresql_database db['database'] do
       action :create
       owner db['username']
-      encoding db['encoding'].upcase
+      encoding db['encoding']
+      collation db['collation']
       connection_limit db['connection_limit']
       template "template0"
       connection pg_connection_info

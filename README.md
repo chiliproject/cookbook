@@ -25,7 +25,8 @@ This is the default configuration for the database connections for all instances
 * `node[:chiliproject][:database][:hostname]` - Use either the `hostname` or the `role`. If the role is set, it has precedence.
 * `node[:chiliproject][:database][:role]`
 * `node[:chiliproject][:database][:port]` - We use the default port for the chosen adapter by default
-* `node[:chiliproject][:database][:encoding]` - Database encoding
+* `node[:chiliproject][:database][:encoding]` - Database encoding (default: `utf8`)
+* `node[:chiliproject][:database][:collation]` - Database collation, must correspondent to the encoding (default: `en_US.utf8`)
 * `node[:chiliproject][:database][:reconnect]` - Reconnect on error if true
 * `node[:chiliproject][:database][:ssl]` - Set to true if the app server should connect via SSL to the database. This is a no-op currently.
 
