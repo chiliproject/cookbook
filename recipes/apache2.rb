@@ -135,7 +135,17 @@ vhosts.each_pair do |hostname, paths|
 end
 
 ##########################################################################
-# 3. restart instances if necessary
+# 4. Disable the default Apache vhost
+
+if vhosts.any?
+  apache_site "000-default" do
+    enable params[:disable]
+  end
+end
+
+
+##########################################################################
+# 4. restart instances if necessary
 
 instances_to_restart.uniq.each do |inst|
   deploy_to = "#{node['chiliproject']['root_dir']}/#{inst['id']}"
