@@ -33,7 +33,7 @@ This is the default configuration for the database connections for all instances
 * `node[:chiliproject][:database][:create_if_missing]` - Create the database and user on the server if it is missing when set to true
 * `node[:chiliproject][:database][:superuser]` - These are the credentials used to create the database if required (and `create_if_missing` is set to `true`). You need to set these attributes when accessing a remote database!
 * `node[:chiliproject][:database][:superuser_password]`
-* `node[:chiliproject][:database][:backup_before_migration]` - Create a full database backup before each migration. Backups are stored in `node[:chiliproject][:shared_dir]/<instance>/backup`
+* `node[:chiliproject][:database][:backup_before_migration]` - Create a full database backup before each migration. Backups are stored in `node[:chiliproject][:shared_dir]/<instance name>/backup`
 
 
 ## Contents of the configuration.yml
@@ -81,8 +81,8 @@ Instance attributes have always precedence.
 * `revision` - The revision to install. Can be either a SHA hash, a branch name or a tag. By default we use the `stable` branch.
 * `database` - Merged with the node attributes. See the description of the node database attributes for details.
   * `database['password']` The password for connection to the database. You have to set the attribute for each instance!
-  * `database['username']` - The name of the database user, defaults to `chili_<instance name`
-  * `database['database']` - The name of the database, defaults to `chili_<instance name`
+  * `database['username']` - The name of the database user, defaults to `chili_<instance name>`
+  * `database['database']` - The name of the database, defaults to `chili_<instance name>`
 * `session` - Defines the session secret and configuration settings for the session cookie.
   * `session['secret']` - The secret key to sign session cookies with. You have to set this. It should be random ascii text unique between all instances. It should be > 50 characters.
   * `session['key']` - The name of the cookie.
@@ -95,7 +95,7 @@ Instance attributes have always precedence.
   * `email_delivery[:login]` - Login method to pass to ActionMailer. Leave as nil to completely disable SMTP authentication
   * `email_delivery[:username]` - Username for the SMTP server when using some authentication mechanism.
   * `email_delivery[:password]` - Password for the SMTP server when using some authentication mechanism.
-* `memcached` - The memcached hosts or role to sue for caching. This overrides the default from the node. See there for details.
+* `memcached` - The memcached hosts or role to use for caching. This overrides the default from the node. See there for details.
   * `memcached['hosts']` - An array of hosts with ports use for caching. E.g. `["127.0.0.1:11211", "10.5.10.123:11211"]`.
   * `memcached['role']` - The role so search for. If the role is set, it has precedence.
 * `rails_env` - The rails environment to run with. By default `production` or the name of the chef environment.
