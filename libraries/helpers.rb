@@ -17,7 +17,7 @@ module ChiliProject
         %w[repository revision].each do |k|
           inst[k] ||= node['chiliproject'][k]
         end
-        %w[migrate force_deploy bundle_vendor backup_before_migration logrotate].each do |k|
+        %w[migrate force_deploy bundle_vendor logrotate].each do |k|
           inst[k] = node['chiliproject'][k] unless inst.has_key?(k)
         end
 
@@ -71,7 +71,7 @@ module ChiliProject
       # these are the hash keys that are not intended to be included into the
       # generated database.yml
       internal_keys = %w[
-        create_if_missing backup_before_migration role superuser
+        create_if_missing backup_before_migrate role superuser
         superuser_password hostname collation
       ]
 

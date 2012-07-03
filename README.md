@@ -47,7 +47,7 @@ This is the default configuration for the database connections for all instances
 * `node[:chiliproject][:database][:create_if_missing]` - Create the database and user on the server if it is missing when set to true
 * `node[:chiliproject][:database][:superuser]` - These are the credentials used to create the database if required (and `create_if_missing` is set to `true`). You need to set these attributes when accessing a remote database!
 * `node[:chiliproject][:database][:superuser_password]`
-* `node[:chiliproject][:database][:backup_before_migration]` - Create a full database backup before each migration. Backups are stored in `node[:chiliproject][:shared_dir]/<instance name>/backup`
+* `node[:chiliproject][:database][:backup_before_migrate]` - Create a full database backup before each migration. Backups are stored in `node[:chiliproject][:shared_dir]/<instance name>/backup`
 
 
 ## Contents of the configuration.yml

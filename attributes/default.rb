@@ -62,7 +62,7 @@ default[:chiliproject][:database][:superuser] = nil
 default[:chiliproject][:database][:superuser_password] = nil
 
 # Create a full database backup before each migration
-default[:chiliproject][:database][:backup_before_migration] = true
+default[:chiliproject][:database][:backup_before_migrate] = true
 
 
 ##############################################################################

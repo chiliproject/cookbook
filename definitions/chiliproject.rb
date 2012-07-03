@@ -195,7 +195,7 @@ define :chiliproject, :name => "default", :instance => nil do
   #############################################################################
   # Database backup
 
-  if inst['database']['backup_before_migration']
+  if inst['database']['backup_before_migrate']
     # Prepare the database backup before the migration if configured
     case inst['database']['adapter']
     when "mysql2"
@@ -319,8 +319,8 @@ define :chiliproject, :name => "default", :instance => nil do
       #########################################################################
       # Backup existing databases before migration
 
-      if inst['migrate'] && inst['backup_before_migration']
-        case db['adapter']
+      if inst['migrate'] && inst['database']['backup_before_migrate']
+        case inst['database']['adapter']
         when "mysql2"
           target_file = backup_dir + "/mysql-#{Time.now.strftime("%Y%m%dT%H%M%S")}-#{release_slug}.sql.gz"
 
@@ -329,7 +329,7 @@ define :chiliproject, :name => "default", :instance => nil do
           args << "--single-transaction"
           args << "--quick"
           args << "--no-create-db"
-          args << "--databases '#{db['database']}'"
+          args << "--databases '#{inst['database']['database']}'"
 
           execute "mysqldump #{args.join(" ")} | gzip > '#{target_file}'" do
             user inst['user']
@@ -339,13 +339,13 @@ define :chiliproject, :name => "default", :instance => nil do
           target_file = backup_dir + "/postgresql-#{Time.now.strftime("%Y%m%dT%H%M%S")}-#{release_slug}.sql.gz"
 
           args = []
-          args << "--host '#{db['host']}'"
-          args << "--port '#{db['port']}'"
-          args << "--username '#{db['username']}'"
+          args << "--host '#{inst['database']['host']}'"
+          args << "--port '#{inst['database']['port']}'"
+          args << "--username '#{inst['database']['username']}'"
           args << "--no-password"
           args << "--format custom"
           args << "--file '#{target_file}'"
-          args << "'#{db['database']}'"
+          args << "'#{inst['database']['database']}'"
 
           execute "pg_dump #{args.join(" ")}" do
             user inst['user']
@@ -356,9 +356,9 @@ define :chiliproject, :name => "default", :instance => nil do
 
           ruby_block "Backup Sqlite3 DB for #{inst['id']}" do
             block do
-              FileUtils::copy_file(db['database'], target_file)
+              FileUtils::copy_file(inst['database']['database'], target_file)
             end
-            only_if { File.exist?(db['database']) }
+            only_if { File.exist?(inst['database']['database']) }
             action :create
           end
         end
