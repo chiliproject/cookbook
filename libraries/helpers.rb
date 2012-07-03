@@ -2,14 +2,40 @@ require 'uri'
 
 module ChiliProject
   module Helpers
-    def base_uri(instance)
-      return instance['base_uri'] if instance['base_uri'].is_a?(URI)
+    def chiliproject_instance(raw)
+      node.run_state[:chiliproject_instances] ||= {}
+      node.run_state[:chiliproject_instances][raw['id']] ||= begin
+        inst = Marshal.load(Marshal.dump(raw))
 
-      base_uri = instance['base_uri'] ? URI(instance['base_uri']) : URI("")
-      base_uri.host ||= instance['id'].gsub(/_/, '.')
-      base_uri.path = "/" if base_uri.path == ""
+        # Set up sane defaults
+        inst['user'] ||= "chili_#{inst['id'].downcase.gsub(/[^a-z]/, '_')}"
+        inst['group'] ||= inst['user']
+        inst['deploy_to'] ||= "#{node['chiliproject']['root_dir']}/#{inst['id']}"
+        inst['log_dir'] ||= "#{node['chiliproject']['log_dir']}/#{inst['id']}"
+        inst['shared_dir'] ||= "#{node['chiliproject']['shared_dir']}/#{inst['id']}"
 
-      instance['base_uri'] = base_uri
+        %w[repository revision].each do |k|
+          inst[k] ||= node['chiliproject'][k]
+        end
+        %w[migrate force_deploy bundle_vendor backup_before_migration logrotate].each do |k|
+          inst[k] = node['chiliproject'][k] unless inst.has_key?(k)
+        end
+
+        inst['base_uri'] = inst['base_uri'] ? URI.parse(inst['base_uri']) : URI.parse("")
+        inst['base_uri'].tap do |base_uri|
+          base_uri.scheme ||= "http"
+          base_uri.host ||= inst['id'].gsub(/_/, '.')
+          base_uri.path = "/" if base_uri.path == ""
+        end
+        inst['database'] = chiliproject_database(inst)
+        inst['rails_env'] ||= node.chef_environment =~ /_default/ ? 'production' : node.chef_environment.to_s
+        inst['apache'] = node['chiliproject']['apache'].merge(inst['apache'] || {}) do |key, old_value, new_value|
+          # The document root can only be set on the node
+          %w[document_root].include?(key) ? old_value : new_value
+        end
+
+        inst
+      end
     end
 
     def get_hosts(instance, prefix=[], role_key="role", hostname_key="hostname")
@@ -35,17 +61,26 @@ module ChiliProject
       end
     end
 
-    def db_hash(instance)
+    def chiliproject_database(instance)
       db = node['chiliproject']['database'].to_hash
 
-      hash = db.merge(instance['database']) do |key, old_value, new_value|
+      hash = db.merge(instance['database'] || {}) do |key, old_value, new_value|
         new_value.nil? ? old_value : new_value
       end
+
+      # these are the hash keys that are not intended to be included into the
+      # generated database.yml
+      internal_keys = %w[
+        create_if_missing backup_before_migration role superuser
+        superuser_password hostname collation
+      ]
 
       case hash['adapter']
       when /sqlite/i
         hash['adapter'] = "sqlite3"
-        db_slug = "#{node['chiliproject']['root_dir']}/#{instance['id']}/shared/#{node.run_state[:rails_env]}.db"
+        db_slug = "#{node['chiliproject']['root_dir']}/#{instance['id']}/shared/#{instance['rails_env']}.db"
+        # sqlite is not external, so we don't have these additional keys
+        internal_keys += %w[username password host port reconnect]
       when /mysql/i
         hash['adapter'] = "mysql2"
         db_slug = "chili_#{instance['id'].downcase.gsub(/[^a-z]/, '_')}"[0..15]
@@ -68,6 +103,14 @@ module ChiliProject
           raise "The ChiliProject instance #{instance['id']} needs a password!"
         end
       end
+
+      database_yml = hash.reject do |k, v|
+        internal_keys.include?(k.to_s)
+      end
+      if database_yml.delete('ssl')
+        # TODO: setup SSL for database connectivity
+      end
+      hash['database_yml'] = database_yml
 
       hash
     end

@@ -1,8 +1,5 @@
-define :chiliproject_rvmrc, :name => "default" do
-  deploy_to = "#{node['chiliproject']['root_dir']}/#{params[:name]}"
-
-  chili_user = "chili_#{params[:name].downcase.gsub(/[^a-z]/, '_')}"
-  chili_group = chili_user
+define :chiliproject_rvmrc, :name => "default", :instance => {} do
+  inst = chiliproject_instance(params[:instance])
 
   if ENV['MY_RUBY_HOME'] && ENV['MY_RUBY_HOME'].include?('rvm')
     begin
@@ -21,10 +18,10 @@ define :chiliproject_rvmrc, :name => "default" do
         creates "#{deploy_to}/.rvmrc"
       end
 
-      file "#{deploy_to}/shared/setup_load_paths.rb" do
+      file "#{inst['deploy_to']}/shared/setup_load_paths.rb" do
         source "setup_load_paths.rb"
-        owner chili_user
-        group chili_user
+        owner inst['user']
+        group inst['group']
         mode "0640"
       end
 

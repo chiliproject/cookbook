@@ -12,10 +12,24 @@ This cookbook requires Chef >= 10.12.0. See *Known Issues* for details
 
 ## Basic paths
 
-* `node[:chiliproject][:root_dir]` = The root directory where all instances are installed to. For each instance there will be one sub directory.
+Define basic paths. By default, these paths define the parent directories for certain parts of ChiliProject. If not overwritten in instances, a sub directory will be created in these directories for each instance.
+
+All of these paths can be overwritten in instance databags.
+
+* `node[:chiliproject][:root_dir]` = The root directory where all instances are installed to. For each instance there will be one sub directory. To overwrite this in an instance, set `deploy_to`
 * `node[:chiliproject][:shared_dir]` - The directory where all shared assets are installed to, this includes uploaded files and any created repositories. For each instance there will be one sub directory.
 * `node[:chiliproject][:log_dir]` - The base directory where all logfiles are piped into For each instance, there will be one sub directory.
-* `node[:chiliproject][:logrotate]` - Setup logrotate if true
+
+## Deployment options
+
+This defines some general defaults for the deployment. All of these values are overridable in instance databags.
+
+* `node[:chiliproject][:repository]` - The repository URL to retrieve ChiliProject from. By default: `https://github.com/chiliproject/chiliproject.git`
+* `node[:chiliproject][:revision]` - The revision to deploy. Can be a branch name, tag name or SHA1 hash. By default: `stable`
+* `node[:chiliproject][:migrate]` - Run migrations if necessary. By default: `true`
+* `node[:chiliproject][:force_deploy]` - Force a full deployment even if current revision is already deployed. By default `false`.
+* `node[:chiliproject][:bundle_vendor]` - Install all gems to vendor/bundle instead of the global gem store. By default: `false`
+* `node[:chiliproject][:logrotate]` - Setup logrotate. By default: `true`
 
 ## Database defaults
 
@@ -64,7 +78,11 @@ Specify any memcached hosts which are used for caching. You can either specify d
 
 ## Apache
 
-* `node[:chiliproject][:apache][:docroot]` - The docroot where the directories with symlinks are created for sub-path installs. This setting is irrelevant for root-path instances.
+Configuration values interesting when using the `apache2` recipe. You can define defaults here which are then used for all instances unless overwritten there.
+
+See the instance attributes for additional setable values.
+
+* `node[:chiliproject][:apache][:document_root]` - The document root where the directories with symlinks are created for sub-path installs. This setting is irrelevant for root-path instances.
 * `node[:chiliproject][:apache][:cookbook]` - The cookbook to search for a template for the Apache config
 * `node[:chiliproject][:apache][:template]` - The template for the Apache config in the above cookbook.
 
@@ -108,8 +126,8 @@ Instance attributes have always precedence.
   * `netrc['password']` - The password used for authenticating to the remote repository
 * `ignored_bundler_groups` - An array of additional bundler groups to ignore. by default, we only install one database adapter and only the required environment groups.
 * `apache` - Some additional configuration settings when deploying with apache
-  * `apache['http_port']` - Overwrite the port used for the HTTP vhost.
-  * `apache['https_port']` - Overwrite the port used for the HTTPs vhost.
+  * `apache['http_port']` - The default port used for the HTTP vhost. If the protocol of the base_uri is `http`, the port specified in the URL has precedence to this value.
+  * `apache['https_port']` - The default port used for the HTTPs vhost. If the protocol of the base_uri is `https`, the port specified in the URL has precedence to this value.
   * `apache['aliases']` - Additional hostnames which are added as server aliases. Must be an array.
   * `apache['serve_aliases']` - If true, it allows the aliases to serve the page, else the cannonical host from the base_uri is enforced.
   * `apache['ssl_certificate_file']` - The path to the SSL certificate file when using SSL.

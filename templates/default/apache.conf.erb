@@ -35,8 +35,11 @@
     PassengerEnabled on
   </Directory>
 
-  <% @params[:passenger_paths].each do |path| %>
+  <% @params[:passenger_paths].each_pair do |path, inst| %>
   RailsBaseURI <%= path %>
+  <Location <%= path %>>
+    RailsEnv <%= inst['rails_env'] %>
+  </Location>
   <% end %>
 
   <Location /server-status>

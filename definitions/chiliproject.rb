@@ -1,18 +1,14 @@
 require 'yaml'
 
-define :chiliproject, :name => "default", :instance => {} do
-  inst = params[:instance]
+# If you use this definition by yourself, you might need to incldue our helpers
+# module into your reciope yourself.
+# self.class.send(:include, ChiliProject::Helpers)
 
-  deploy_to = "#{node['chiliproject']['root_dir']}/#{inst['id']}"
-
-  chili_user = "chili_#{inst['id'].downcase.gsub(/[^a-z]/, '_')}"
-  chili_group = chili_user
-
-  rails_env = inst['rails_env']
-  rails_env ||= (node.chef_environment =~ /_default/ ? 'production' :  node.chef_environment)
-  node.run_state[:rails_env] = rails_env
+define :chiliproject, :name => "default", :instance => nil do
+  inst = chiliproject_instance(params[:instance])
 
   # Reset the list of additional files to symlink before migration
+  # These can be amended by sub definitions
   node.run_state[:chiliproject_deploy_symlinks] = {}
 
   #############################################################################
@@ -27,11 +23,11 @@ define :chiliproject, :name => "default", :instance => {} do
   # Users and Groups
 
   # Create the user and group, one for each instance
-  group chili_group
-  user chili_user do
+  group inst['group']
+  user inst['user'] do
     comment 'ChiliProject'
-    gid chili_group
-    home deploy_to
+    gid inst['group']
+    home inst['deploy_to']
     system true
     shell '/bin/bash'
   end
@@ -39,48 +35,43 @@ define :chiliproject, :name => "default", :instance => {} do
   # Create a shared group containing all the users of each instance
   # Use for shared files to ensure minimal permissions
   group "chiliproject" do
-    members chili_user
+    members inst['user']
     append true
   end
 
   #############################################################################
   # Basic Directory Structure
 
-  [deploy_to, "#{deploy_to}/shared"].each do |dir|
+  [inst['deploy_to'], "#{inst['deploy_to']}/shared"].each do |dir|
     directory dir do
-      owner chili_user
-      group chili_group
+      owner inst['user']
+      group inst['group']
       mode '0755'
       recursive true
     end
   end
 
-  %w[logs pids system vendor/bundle].each do |dir|
-    directory "#{deploy_to}/shared/#{dir}" do
-      owner chili_user
-      group chili_group
+  %w[logs pids system vendor vendor/bundle].each do |dir|
+    directory "#{inst['deploy_to']}/shared/#{dir}" do
+      owner inst['user']
+      group inst['group']
       mode '0750'
       recursive true
     end
   end
 
   # Shared directory for uploaded files, repositories, ...
-  directory node['chiliproject']['shared_dir'] do
+  directory inst['shared_dir'] do
     owner 'root'
     group 'root'
     mode '0755'
     recursive true
   end
-  directory "#{node['chiliproject']['shared_dir']}/#{inst['id']}" do
-    owner 'root'
-    group 'root'
-    mode '0755'
-  end
 
   # Uploaded attachments
-  directory "#{node['chiliproject']['shared_dir']}/#{inst['id']}/files" do
-    owner chili_user
-    group chili_group
+  directory "#{inst['shared_dir']}/files" do
+    owner inst['user']
+    group inst['group']
     mode "2750"
   end
 
@@ -90,16 +81,17 @@ define :chiliproject, :name => "default", :instance => {} do
     group 'root'
     mode '0755'
     recursive true
-  end
-  directory "#{node['chiliproject']['log_dir']}/#{inst['id']}" do
-    owner chili_user
-    group chili_group
+  end if inst['log_dir'].start_with?(node['chiliproject']['log_dir'])
+
+  directory inst['log_dir'] do
+    owner inst['user']
+    group inst['group']
     mode '0750'
   end
-  file "#{node['chiliproject']['log_dir']}/#{inst['id']}/#{rails_env}.log" do
+  file "#{inst['log_dir']}/#{inst['rails_env']}.log" do
     action :create_if_missing
-    owner chili_user
-    group chili_group
+    owner inst['user']
+    group inst['group']
     mode '0640'
     content "# Logfile created on #{Time.now.to_s}"
   end
@@ -109,14 +101,14 @@ define :chiliproject, :name => "default", :instance => {} do
 
   session_config = {
     'key' => "_chili_#{inst['id']}_session",
-    'session_path' => base_uri(inst).path || "/"
+    'session_path' => inst['base_uri'].path
   }
-  session_config['secure'] = true if base_uri(inst).scheme == "https"
-  session_config.merge!(inst['session'])
-  template "#{deploy_to}/shared/session_store.rb" do
+  session_config['secure'] = true if inst['base_uri'].scheme == "https"
+  session_config.merge!(inst['session']) if inst['session']
+  template "#{inst['deploy_to']}/shared/session_store.rb" do
     source "session_store.rb.erb"
-    owner chili_user
-    group chili_group
+    owner inst['user']
+    group inst['group']
     mode "0400"
     variables :session_config => session_config
   end
@@ -133,9 +125,9 @@ define :chiliproject, :name => "default", :instance => {} do
   # Configure the autologin cookie similar to the session cookie
   # Can be overridden in the node and instance configuration
   configuration_default['autologin_cookie_name'] ||= "_chili_#{inst['id']}_autologin"
-  configuration_default['autologin_cookie_path'] ||= base_uri(inst).path || "/"
+  configuration_default['autologin_cookie_path'] ||= inst['base_uri']
   unless configuration_default.has_key?("autologin_cookie_secure")
-    configuration_default['autologin_cookie_secure'] = true if base_uri(inst).scheme == "https"
+    configuration_default['autologin_cookie_secure'] = true if inst['base_uri'].scheme == "https"
   end
 
   configuration_production = {'email_delivery' => {}}
@@ -166,7 +158,7 @@ define :chiliproject, :name => "default", :instance => {} do
 
   configuration_test = {'email_delivery' => {'delivery_method' => 'test'}}
 
-  prod_env = ['test', 'development'].include?(rails_env) ? 'production' : rails_env
+  prod_env = ['test', 'development'].include?(inst['rails_env']) ? 'production' : inst['rails_env']
   configuration = {
     'default' => configuration_default,
     prod_env => configuration_production,
@@ -174,9 +166,9 @@ define :chiliproject, :name => "default", :instance => {} do
     'test' => configuration_test
   }
 
-  file "#{deploy_to}/shared/configuration.yml" do
-    owner chili_user
-    group chili_group
+  file "#{inst['deploy_to']}/shared/configuration.yml" do
+    owner inst['user']
+    group inst['group']
     mode '0400'
     content configuration.to_yaml
   end
@@ -184,64 +176,50 @@ define :chiliproject, :name => "default", :instance => {} do
   #############################################################################
   # database.yml
 
-  # Get the merged config hash from node and instance
-  db = db_hash(inst)
-
-  # Cleanup internal keys
-  internal_keys = %w[create_if_missing backup_before_migration role superuser superuser_password hostname]
-  realdb_keys = %w[username password host port reconnect]
-  db_hash_for_database_yml = db.reject do |k, v|
-    if db['adapter'] == "sqlite3"
-      (internal_keys + realdb_keys).include?(k.to_s)
-    else
-      internal_keys.include?(k.to_s)
-    end
-  end
-  # generate additional config for SSL connectivity
-  if db_hash_for_database_yml.delete('ssl')
-    # TODO: setup SSL for database connectivity
+  # Setup SSL keys for database connectivity
+  if inst['database']['ssl']
+    warn("Database access via SSL is not yet supported for instance #{inst['id']}")
   end
 
-  database_yml = {rails_env => db_hash_for_database_yml}
-  unless database_yml.has_key?('development')
-    database_yml['development'] = db_hash_for_database_yml
+  yaml = [inst['rails_env'], 'development'].uniq.inject({}) do |yaml, key|
+    yaml[key] = inst['database']['database_yml']
+    yaml
   end
-
-  file "#{deploy_to}/shared/database.yml" do
-    owner chili_user
-    group chili_group
+  file "#{inst['deploy_to']}/shared/database.yml" do
+    owner inst['user']
+    group inst['group']
     mode '0400'
-    content database_yml.to_yaml
+    content yaml.to_yaml
   end
 
   #############################################################################
   # Database backup
 
-  if db['backup_before_migration']
+  if inst['database']['backup_before_migration']
     # Prepare the database backup before the migration if configured
-    case db['adapter']
+    case inst['database']['adapter']
     when "mysql2"
-      template "#{deploy_to}/shared/database_backup.cnf" do
+      template "#{inst['deploy_to']}/shared/database_backup.cnf" do
         source "database_backup.cnf.erb"
-        owner chili_user
-        group chili_group
+        owner inst['user']
+        group inst['group']
         mode '0400'
-        variables :db => db
+        variables :db => inst['database']
       end
     when "postgresql"
-      template "#{deploy_to}/.pgpass" do
+      template "#{inst['deploy_to']}/.pgpass" do
         source "pgpass.erb"
-        owner chili_user
-        group chili_group
+        owner inst['user']
+        group inst['group']
         mode '0400'
-        variables :db => db
+        variables :db => inst['database']
       end
     end
 
     backup_dir = "#{node['chiliproject']['shared_dir']}/#{inst['id']}/backup"
     directory backup_dir do
-      owner chili_user
-      group chili_group
+      owner inst['user']
+      group inst['group']
       mode "2750"
       recursive true
     end
@@ -253,65 +231,65 @@ define :chiliproject, :name => "default", :instance => {} do
   memcached_hosts = get_hosts(inst, 'memcached')
   if memcached_hosts && !memcached_hosts.empty?
     memcached_hosts = memcached_hosts.collect do |node|
-      ip = node['ipaddress']
-      ip += ":#{node['memcached']['port']}" if node['memcached']['port']
-      ip
+      port = node['memcached']['port'] ? ":#{node['memcached']['port']}" : ""
+      "#{node['ipaddress']}#{port}"
     end
   else
     memcached_hosts = nil
   end
-  template "#{deploy_to}/shared/additional_environment.rb" do
+  template "#{inst['deploy_to']}/shared/additional_environment.rb" do
     source "additional_environment.rb.erb"
-    owner chili_user
-    group chili_group
+    owner inst['user']
+    group inst['group']
     mode "0440"
     variables :name => inst['id'], :memcached_hosts => memcached_hosts
   end
 
   # Setup a .rvmrc to enforce the current gemset throughout the wholelife of
   # the instance (if applicable)
-  chiliproject_rvmrc inst['id']
-
-  #############################################################################
-  # Now do the actual application deployment.
-  # The fun starts here :)
+  chiliproject_rvmrc inst['id'] do
+    instance inst
+  end
 
   chiliproject_deploy_key inst['id'] do
     instance inst
   end
+
+  #############################################################################
+  # Now do the actual application deployment.
+  # The fun starts here :)
 
   # Find the bundler groups to install
   ignored_bundler_groups = inst['ignored_bundler_groups'] || []
   common_groups = %w[development test production]
   database_groups = %w[mysql mysql2 postgres sqlite]
 
-  ignored_bundler_groups += (common_groups - [rails_env])
-  adapter_group = case db['adapter'].downcase
+  ignored_bundler_groups += (common_groups - [inst['rails_env']])
+  adapter_group = case inst['database']['adapter']
     when 'postgresql' then "postgres"
     when "sqlite3" then "sqlite"
-    else db['adapter'].downcase
+    else db['adapter']
   end
   ignored_bundler_groups += (database_groups - [adapter_group])
 
   # install rmagick requirements only if required
   include_recipe "imagemagick::rmagick" unless ignored_bundler_groups.include? "rmagick"
 
-  deploy_target = deploy_to
   deploy_revision "ChiliProject #{inst['id']}" do
     repository inst['repository'] || "https://github.com/chiliproject/chiliproject.git"
     revision inst['revision'] || "stable"
 
-    user chili_user
-    group chili_group
+    user inst['user']
+    group inst['group']
 
-    deploy_to deploy_target
-    environment 'RAILS_ENV' => rails_env, 'RACK_ENV' => rails_env
+    deploy_to inst['deploy_to']
+    environment 'RAILS_ENV' => inst['rails_env'], 'RACK_ENV' => inst['rails_env']
 
     action inst['force_deploy'] ? :force_deploy : :deploy
-    ssh_wrapper "#{app['deploy_to']}/deploy-ssh-wrapper" if inst['deploy_key']
+    ssh_wrapper "#{inst['deploy_to']}/deploy-ssh-wrapper" if inst['deploy_key']
     shallow_clone true
 
-    if (inst.has_key?('migrate') ? inst['migrate'] : node['chiliproject']['migrate'])
+    if inst['migrate']
       migrate true
       migration_command "bundle exec rake db:migrate db:migrate:plugins --trace"
     else
@@ -322,33 +300,40 @@ define :chiliproject, :name => "default", :instance => {} do
       #########################################################################
       # Select the bundler groups and install them
 
-      deployment_flag = File.exists?("#{deploy_target}/Gemfile.lock") ? "--deployment" : ""
-      execute "bundle install #{deployment_flag} --without #{ignored_bundler_groups.join(' ')}" do
-        cwd release_path
-        user 'root'
-        group 'root'
+      deployment_flag = "--deployment" if File.exists?("#{inst['deploy_to']}/Gemfile.lock")
+      deployment_flag ||= "--path vendor/bundle" if inst['bundle_vendor']
+      if deployment_flag
+        execute "bundle install #{deployment_flag} --without #{ignored_bundler_groups.join(' ')}" do
+          cwd release_path
+          user inst['user']
+          group inst['group']
+        end
+      else
+        execute "bundle install --without #{ignored_bundler_groups.join(' ')}" do
+          cwd release_path
+          user 'root'
+          group 'root'
+        end
       end
 
       #########################################################################
       # Backup existing databases before migration
 
-      if (inst.has_key?('migrate') ? inst['migrate'] : node['chiliproject']['migrate']) &&
-        (inst.has_key?('backup_before_migration') ? inst['backup_before_migration'] : node['chiliproject']['database']['backup_before_migration'])
-
+      if inst['migrate'] && inst['backup_before_migration']
         case db['adapter']
         when "mysql2"
           target_file = backup_dir + "/mysql-#{Time.now.strftime("%Y%m%dT%H%M%S")}-#{release_slug}.sql.gz"
 
           args = []
-          args << "--defaults-extra-file='#{deploy_to}/shared/database_backup.cnf'"
+          args << "--defaults-extra-file='#{inst['deploy_to']}/shared/database_backup.cnf'"
           args << "--single-transaction"
           args << "--quick"
           args << "--no-create-db"
           args << "--databases '#{db['database']}'"
 
           execute "mysqldump #{args.join(" ")} | gzip > '#{target_file}'" do
-            user chili_user
-            group chili_group
+            user inst['user']
+            group inst['group']
           end
         when "postgresql"
           target_file = backup_dir + "/postgresql-#{Time.now.strftime("%Y%m%dT%H%M%S")}-#{release_slug}.sql.gz"
@@ -363,11 +348,11 @@ define :chiliproject, :name => "default", :instance => {} do
           args << "'#{db['database']}'"
 
           execute "pg_dump #{args.join(" ")}" do
-            user chili_user
-            group chili_user
+            user inst['user']
+            group inst['group']
           end
         when "sqlite3"
-          target_file = backup_dir + "/postgresql-#{Time.now.strftime("%Y%m%dT%H%M%S")}-#{release_slug}.sqlite"
+          target_file = backup_dir + "/sqlite-#{Time.now.strftime("%Y%m%dT%H%M%S")}-#{release_slug}.sqlite"
 
           ruby_block "Backup Sqlite3 DB for #{inst['id']}" do
             block do
@@ -392,12 +377,12 @@ define :chiliproject, :name => "default", :instance => {} do
   #############################################################################
   # Finally setup logrotate for the logfiles
 
-  if node['chiliproject']['logrotate']
+  if inst['logrotate']
     logrotate_app "ChiliProject #{inst['id']}" do
-      path "#{node['chiliproject']['log_dir']}/#{inst['id']}/*.log"
+      path "#{inst['log_dir']}/*.log"
       frequence "weekly"
       rotate 8
-      create "640 #{chili_user} #{chili_group}"
+      create "640 #{inst['user']} #{inst['group']}"
     end
   end
 end

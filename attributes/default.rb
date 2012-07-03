@@ -7,12 +7,32 @@ default[:chiliproject][:root_dir] = "/opt/chiliproject"
 
 # The directory where all shared assets are installed to, this includes
 # uploaded files and any created repositories.
-# For each instance there will be one sub directory.
+# By default, there there will be one sub directory for each instance.
+# This value can be overwritten in instance databags.
 default[:chiliproject][:shared_dir] = "/opt/chiliproject/shared"
 
 # The base directory where all logfiles are piped into
-# For each instance, there will be one sub directory.
+# By default, there there will be one sub directory for each instance.
+# This value can be overwritten in instance databags.
 default[:chiliproject][:log_dir] = "/var/log/chiliproject"
+
+
+##############################################################################
+# Deployment options
+# All of these values are overridable in instance databags
+
+# The repository URL to retrieve ChiliProject from
+default[:chiliproject][:repository] = "https://github.com/chiliproject/chiliproject.git"
+# The revision to deploy. Can be a branch name, tag name or SHA1 hash
+default[:chiliproject][:revision] = "stable"
+# Run migrations if necessary
+default[:chiliproject][:migrate] = true
+# Force a full deployment even if current revision is already deployed if true
+default[:chiliproject][:force_deploy] = false
+# Install all gems to vendor/bundle instead of the global gem store
+default[:chiliproject][:bundle_vendor] = false
+
+
 # Setup logrotate if true
 default[:chiliproject][:logrotate] = true
 
@@ -79,7 +99,7 @@ default[:chiliproject]['memcached']['role'] = nil
 
 # The docroot where the directories with symlinks are created for sub-path
 # installs. This setting is irrelevant for root-path instances
-default[:chiliproject][:apache][:docroot] = "/var/www"
+default[:chiliproject][:apache][:document_root] = "/var/www"
 
 # Where to search for a template for the Apache config
 default[:chiliproject][:apache][:cookbook] = "chiliproject"
