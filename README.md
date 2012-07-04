@@ -217,4 +217,6 @@ There are two recipes you need to concern yourself with:
 
 # License
 
-GPLv2 for now. But this might change too...
+Copyright (c) 2012 Holger Just, The Chiliproject Team. See [the list of contributors](https://github.com/meineerde/chiliproject-cookbook/graphs/contributors) for details.
+
+This software is licensed under the MIT license. See LICENSE for details.
