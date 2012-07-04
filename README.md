@@ -22,7 +22,7 @@ All of these paths can be overwritten in instance databags.
 
 ## Deployment options
 
-This defines some general defaults for the deployment. All of these values are overridable in instance databags.
+This defines some general defaults for the deployment. All of these values are overwritable in instance databags.
 
 * `node[:chiliproject][:repository]` - The repository URL to retrieve ChiliProject from. By default: `https://github.com/chiliproject/chiliproject.git`
 * `node[:chiliproject][:revision]` - The revision to deploy. Can be a branch name, tag name or SHA1 hash. By default: `stable`
@@ -80,7 +80,7 @@ Specify any memcached hosts which are used for caching. You can either specify d
 
 Configuration values interesting when using the `apache2` recipe. You can define defaults here which are then used for all instances unless overwritten there.
 
-See the instance attributes for additional setable values.
+See the instance attributes for additional settable values.
 
 * `node[:chiliproject][:apache][:document_root]` - The document root where the directories with symlinks are created for sub-path installs. This setting is irrelevant for root-path instances.
 * `node[:chiliproject][:apache][:cookbook]` - The cookbook to search for a template for the Apache config
@@ -129,12 +129,74 @@ Instance attributes have always precedence.
   * `apache['http_port']` - The default port used for the HTTP vhost. If the protocol of the base_uri is `http`, the port specified in the URL has precedence to this value.
   * `apache['https_port']` - The default port used for the HTTPs vhost. If the protocol of the base_uri is `https`, the port specified in the URL has precedence to this value.
   * `apache['aliases']` - Additional hostnames which are added as server aliases. Must be an array.
-  * `apache['serve_aliases']` - If true, it allows the aliases to serve the page, else the cannonical host from the base_uri is enforced.
+  * `apache['serve_aliases']` - If true, it allows the aliases to serve the page, else the canonical host from the `base_uri` is enforced.
   * `apache['ssl_certificate_file']` - The path to the SSL certificate file when using SSL.
   * `apache['ssl_key_file']` - The path to the SSL key file when using SSL.
   * `apache['ssl_ca_certificate_file']` - The path to the SSL CS certificate file when using SSL.
 
 It should be noted that in the `apache` group, when using sub-paths, all instances configured under the same virtual host (with `base_uri`) have to share all these settings (with the exception of aliases). Thus, you need to configure these instances with the exact same values.
+
+### Plugins
+
+Each instance can have a number of plugins. Right now, these can be installed from either a git or a subversion repository.
+
+Plugins are defined as part of the instance as a hash under `plugins`. The key represents the directory where the plugin is installed to. This typically **must** correspondent to the plugin name. See the individual plugin's description for details.
+
+Each plugin can then be configured with the following attributes:
+
+* `plugins[<plugin name>]['repository']` - The URL to the repository to retrieve the plugin from
+* `plugins[<plugin name>]['revision']` - The revision to use, By default: `HEAD`
+* `plugins[<plugin name>]['repository_type']` - The type of repository. Can be either `git` (default) or `subversion`
+* `plugins[<plugin name>]['deploy_key']` - The private SSH key used for authenticating to the remote repository via SSH. Set this only if required.
+* `plugins[<plugin name>]['netrc']` - Necessary credentials to access private repository server over HTTP. Set this only if required.
+  * `plugins[<plugin name>]['netrc']['hostname']` - The hostname to authenticate to, i.e. the hostname of the repository server.
+  * `plugins[<plugin name>]['netrc']['username']` - The username used for authenticating to the remote repository
+  * `plugins[<plugin name>]['netrc']['password']` - The password used for authenticating to the remote repository
+* `plugins[<plugin name>]['force_deploy']` - When set, overrides the respective value of the instance for this plugin only
+* `plugins[<plugin name>]['callback']` - The name of a callback resource to perform additional actions
+
+*Note:* Plugin migrations are always done together with the instance. If the instance has set `deploy` to `true` then all installed plugins are also migrated.
+
+For most plugins, it should be sufficient to give the `repository` and `revision`. More complex plugins might require additional setup steps. These can be provided with a custom callback. This is a simple resource (e.g. an [LWRP](http://wiki.opscode.com/display/chef/Lightweight+Resources+and+Providers+%28LWRP%29) or a [Definition](http://wiki.opscode.com/display/chef/Definitions)) which accepts the following parameters:
+
+* `name` - The name of the directory the plugin is installed to
+* `instance` - The ChiliProject instance hash
+* `instance_path` - The current release path of the ChiliProject instance (not the plugin)
+* `plugin` - The plugin instance hash
+* `action` - The name of the callback, is one of `:before_migrate`, `:before_symlink`, `:before_restart`, `:after_restart`
+
+The callback resource is called once for each action during the respective phases of the deployment of the main instance. As we potentially need to have multiple incarnations of the resource in a single chef run, a callback *can not* be a recipe.
+
+As an example, this is the required callback definition for the (`chiliproject_backlogs`)[https://github.com/finnlabs/chiliproject_backlogs] plugin. It runs a rake task to pull the current print label definitions at a very late stage in deployment, after all the migrations are done and all files are symlinked in place.
+
+    define :chiliproject_backlogs do
+      inst = params[:instance]
+      instance_path = params[:instance_path]
+
+      case params[:action]
+      when :before_restart
+        execute "bundle exec rake redmine:backlogs:current_labels --trace" do
+          user inst['user']
+          group inst['group']
+          cwd instance_path
+          environment 'RAILS_ENV' => inst['rails_env']
+          ignore_failure false
+        end
+      end
+    end
+
+You can simply put this into the `definitions` directory of any cookbook. If the cookbook is then loaded into the `run_list` of your application server (and the callback thus be made available to the chef run), it will get picked up during deployment.
+
+If you use a new cookbook, you also need an empty default recipe. A sample directory structure could look like this:
+
+    my_cookbook
+    |-- definitions
+    |   |-- chiliproject_backlogs.rb
+    |-- recipes
+    |   |-- default.rb
+    `-- README.md
+
+With this in place you just need to include `recipe[my_cookbook]` into your run list and reference the definition in the `callback` attribute of your plugin.
 
 # Usage
 
@@ -150,6 +212,7 @@ There are two recipes you need to concern yourself with:
 * When performing sub-path deployments, i.e., setting a `base_uri` to a URL with a path component, a bug present in Chef <= 0.10.10 prevents us from creating the required symlinks for the Apache+Passenger config. This is fixed with in [CHEF-3110](http://tickets.opscode.com/browse/CHEF-3110). Thus you need at least Chef 10.12.0 when all of these conditions apply:
   * You are using sub-path deployments
   * You are using the `chiliproject::apache2` cookbook for setting up Passenger
+* For similar reasons, you need Chef >= 10.12.0 when installing plugins.
 * When trying to set a database encoding which is different from the default `LC_CTYPE` with PostgreSQL, the database can not be created. The cause is [a bug in the database cookbook](http://tickets.opscode.com/browse/COOK-1401).
 
 # License

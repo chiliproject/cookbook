@@ -1,3 +1,6 @@
-machine <%= @hostname %>
-login <%= @username %>
-password <%= @password %>
+<% @hosts.each do |host|
+machine <%= host['hostname'] %>
+login <%= host['username'] %>
+password <%= host['password'] %>
+
+<% end %>

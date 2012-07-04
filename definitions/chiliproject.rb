@@ -10,6 +10,8 @@ define :chiliproject, :name => "default", :instance => nil do
   # Reset the list of additional files to symlink before migration
   # These can be amended by sub definitions
   node.run_state[:chiliproject_deploy_symlinks] = {}
+  node.run_state[:chiliproject_plugin_symlinks] = {}
+  node.run_state[:chiliproject_plugin_callbacks] = {}
 
   #############################################################################
   # Install package dependencies
@@ -251,7 +253,17 @@ define :chiliproject, :name => "default", :instance => nil do
     instance inst
   end
 
-  chiliproject_deploy_key inst['id'] do
+  chiliproject_deploy_key "ChiliProject #{inst['id']}" do
+    instance inst
+  end
+  chiliproject_netrc "ChiliProject #{inst['id']}" do
+    instance inst
+  end
+
+  #############################################################################
+  # Install plugins
+
+  chiliproject_plugins do
     instance inst
   end
 
@@ -297,6 +309,25 @@ define :chiliproject, :name => "default", :instance => nil do
     end
 
     before_migrate do
+      #########################################################################
+      # Link the plugins into place
+
+      # We have to do this by hand as it's too late for bundle install when
+      # using symlink_before_migrate
+      node.run_state[:chiliproject_plugin_symlinks].each_pair do |source, target|
+        link File.join(release_path, target) do
+          to source
+          owner inst['user']
+          group inst['group']
+        end
+      end
+
+      directory "#{release_path}/public/plugin_assets" do
+        owner inst['user']
+        group inst['group']
+        mode 0755
+      end
+
       #########################################################################
       # Select the bundler groups and install them
 
@@ -363,6 +394,16 @@ define :chiliproject, :name => "default", :instance => nil do
           end
         end
       end
+
+      current_release = release_path
+      node.run_state[:chiliproject_plugin_callbacks].each do |name, info|
+        send(info['callback'], name) do
+          action :before_migrate
+          instance inst
+          plugin info['plugin']
+          instance_path current_release
+        end
+      end
     end
 
     symlink_before_migrate({
@@ -372,6 +413,20 @@ define :chiliproject, :name => "default", :instance => nil do
       "additional_environment.rb" => "config/additional_environment.rb"
     })
     symlink_before_migrate.merge! node.run_state[:chiliproject_deploy_symlinks]
+
+    %w[before_symlink before_restart after_restart].each do |cb|
+      send(cb.to_sym) do
+        current_release = release_path
+        node.run_state[:chiliproject_plugin_callbacks].each do |name, info|
+          send(info['callback'], name) do
+            action cb.to_sym
+            instance inst
+            plugin info['plugin']
+            instance_path current_release
+          end
+        end
+      end
+    end
   end
 
   #############################################################################

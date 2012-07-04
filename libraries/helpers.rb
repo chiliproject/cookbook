@@ -33,6 +33,7 @@ module ChiliProject
           # The document root can only be set on the node
           %w[document_root].include?(key) ? old_value : new_value
         end
+        inst['plugins'] ||= {}
 
         inst
       end
