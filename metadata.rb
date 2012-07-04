@@ -1,6 +1,6 @@
 maintainer       "ChiliProject Community"
 maintainer_email "info@chiliproject.org"
-license          "GPLv2"
+license          "MIT"
 description      "Installs/Configures ChiliProject"
 long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
 version          "0.0.1"
