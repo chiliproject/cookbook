@@ -131,10 +131,8 @@ end
 ##########################################################################
 # 4. Disable the default Apache vhost
 
-if vhosts.any?
-  apache_site "000-default" do
-    enable params[:disable]
-  end
+apache_site "000-default" do
+  enable vhosts.any?
 end
 
 
