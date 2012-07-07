@@ -58,13 +58,13 @@ define :chiliproject_plugins, :name => nil, :instance => {} do
         after_restart do
           # register this plugin so we can later set it up properly
           # when deploying the main instance
-          node.run_state[:chiliproject_plugin_symlinks].merge!(
+          node.run_state['chiliproject_plugin_symlinks'].merge!(
             release_path => "vendor/plugins/#{name}"
           )
 
           plugin['release_path'] = release_path
           if plugin['callback']
-            node.run_state[:chiliproject_plugin_callbacks][name] = {
+            node.run_state['chiliproject_plugin_callbacks'][name] = {
               'callback' => plugin['callback'],
               'plugin' => plugin
             }

@@ -3,8 +3,8 @@ require 'uri'
 module ChiliProject
   module Helpers
     def chiliproject_instance(raw)
-      node.run_state[:chiliproject_instances] ||= {}
-      node.run_state[:chiliproject_instances][raw['id']] ||= begin
+      node.run_state['chiliproject_instances'] ||= {}
+      node.run_state['chiliproject_instances'][raw['id']] ||= begin
         inst = Marshal.load(Marshal.dump(raw))
 
         # Set up sane defaults

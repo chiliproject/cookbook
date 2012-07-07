@@ -25,7 +25,7 @@ define :chiliproject_rvmrc, :name => "default", :instance => {} do
         mode "0640"
       end
 
-      node.run_state[:chiliproject_deploy_symlinks].merge!(
+      node.run_state['chiliproject_deploy_symlinks'].merge!(
         "setup_load_paths.rb" => "config/setup_load_paths.rb"
       )
     rescue LoadError
