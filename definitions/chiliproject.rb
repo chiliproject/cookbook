@@ -247,12 +247,6 @@ define :chiliproject, :name => "default", :instance => nil do
     variables :name => inst['id'], :memcached_hosts => memcached_hosts
   end
 
-  # Setup a .rvmrc to enforce the current gemset throughout the wholelife of
-  # the instance (if applicable)
-  chiliproject_rvmrc inst['id'] do
-    instance inst
-  end
-
   chiliproject_deploy_key "ChiliProject #{inst['id']}" do
     instance inst
   end
