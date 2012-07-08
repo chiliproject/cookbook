@@ -132,7 +132,7 @@ end
 # 4. Disable the default Apache vhost
 
 apache_site "000-default" do
-  enable vhosts.any?
+  enable !vhosts.any?
 end
 
 
