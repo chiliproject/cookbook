@@ -5,7 +5,7 @@ require 'yaml'
 # self.class.send(:include, ChiliProject::Helpers)
 
 define :chiliproject, :name => "default", :instance => nil do
-  inst = chiliproject_instance(params[:instance])
+  inst = params[:instance]
 
   # Reset the list of additional files to symlink before migration
   # These can be amended by sub definitions
@@ -293,7 +293,7 @@ define :chiliproject, :name => "default", :instance => nil do
 
     action inst['force_deploy'] ? :force_deploy : :deploy
     ssh_wrapper "#{inst['deploy_to']}/deploy-ssh-wrapper" if inst['deploy_key']
-    shallow_clone true
+    shallow_clone false
 
     if inst['migrate']
       migrate true

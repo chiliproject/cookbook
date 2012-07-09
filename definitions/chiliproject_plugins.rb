@@ -1,5 +1,5 @@
 define :chiliproject_plugins, :name => nil, :instance => {} do
-  inst = chiliproject_instance(params[:instance])
+  inst = params[:instance]
 
   directory "#{inst['deploy_to']}/shared/plugins" do
     owner inst['user']

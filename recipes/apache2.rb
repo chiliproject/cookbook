@@ -4,16 +4,14 @@ include_recipe "apache2"
 include_recipe "apache2::mod_rewrite"
 include_recipe "passenger_apache2::mod_rails"
 
-instances = Chef::DataBag.load("chiliproject").values
-
 vhosts = {}
 instances_to_restart = []
 
 ##########################################################################
 # 1. Match the instances to vhosts. We use the base_uri parameter here
 
-instances.each do |inst|
-  inst = chiliproject_instance(inst)
+data_bag("chiliproject").each do |name|
+  inst = chiliproject_instance(name)
 
   vhosts[inst['base_uri'].host] ||= {}
   vhosts[inst['base_uri'].host][inst['base_uri'].path] = inst

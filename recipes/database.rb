@@ -1,8 +1,7 @@
 self.class.send(:include, ChiliProject::Helpers)
 
-instances = Chef::DataBag.load("chiliproject").values
-instances.each do |inst|
-  inst = chiliproject_instance(inst)
+data_bag("chiliproject").each do |name|
+  inst = chiliproject_instance(name)
 
   case inst['database']['adapter']
   when "mysql2"

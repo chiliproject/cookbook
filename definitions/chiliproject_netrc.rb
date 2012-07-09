@@ -1,5 +1,5 @@
 define :chiliproject_netrc, :name => "default", :instance => {} do
-  inst = chiliproject_instance(params[:instance])
+  inst = params[:instance]
 
   hosts = [inst['netrc']]
   hosts += inst['plugins'].collect{|name, plugin| plugin['netrc']}

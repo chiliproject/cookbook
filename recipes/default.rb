@@ -6,9 +6,9 @@ include_recipe "chiliproject::database"
 # Then deploy the ChiliProject instances
 include_recipe "git"
 
-instances = Chef::DataBag.load("chiliproject").values
-instances.each do |inst|
-  chiliproject inst['id'] do
+data_bag("chiliproject").each do |name|
+  inst = chiliproject_instance(name)
+  chiliproject name do
     instance inst
   end
 end

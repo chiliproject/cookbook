@@ -1,6 +1,5 @@
 define :chiliproject_deploy_key, :name => "default", :instance => {}, :deploy_to => nil, :deploy_key => nil do
-  inst = chiliproject_instance(params[:instance])
-
+  inst = params[:instance]
   deploy_to = params[:deploy_to] || inst['deploy_to']
 
   if params[:deploy_key] || inst["deploy_key"]

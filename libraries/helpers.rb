@@ -2,10 +2,10 @@ require 'uri'
 
 module ChiliProject
   module Helpers
-    def chiliproject_instance(raw)
+    def chiliproject_instance(name)
       node.run_state['chiliproject_instances'] ||= {}
-      node.run_state['chiliproject_instances'][raw['id']] ||= begin
-        inst = Marshal.load(Marshal.dump(raw))
+      node.run_state['chiliproject_instances'][name.to_s] ||= begin
+        inst = data_bag_item('chiliproject', name.to_s)
 
         # Set up sane defaults
         inst['user'] ||= "chili_#{inst['id'].downcase.gsub(/[^a-z]/, '_')}"
