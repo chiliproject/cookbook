@@ -160,8 +160,11 @@
     Allow from all
   </Directory>
 
-  <% @params[:passenger_paths].each do |path| %>
+  <% @params[:passenger_paths].each_pair do |path, inst| %>
   RailsBaseURI <%= path %>
+  <Location <%= path %>>
+    RailsEnv <%= inst['rails_env'] %>
+  </Location>
   <% end %>
 
   # Deflate
@@ -180,10 +183,12 @@
     RequestHeader unset Request-Range
   </IfModule>
 
-  <FilesMatch "\.(ico|pdf|flv|jpe?g|png|gif|js|css|swf)$">
-    ExpiresActive On
-    ExpiresDefault "access plus 1 year"
-  </FilesMatch>
+  <IfModule mod_expires.c>
+    <FilesMatch "\.(ico|pdf|flv|jpe?g|png|gif|js|css|swf)$">
+      ExpiresActive On
+      ExpiresDefault "access plus 1 year"
+    </FilesMatch>
+  </IfModule>
 
   # Allow access to the sys controller only from the local system
   # There might be required additional IPs if the repository creation is done
