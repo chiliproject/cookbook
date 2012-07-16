@@ -65,7 +65,7 @@ These attributes are:
 * `node[:chiliproject][:email_delivery][:hostname]` - Use either the `hostname` or the `role` to define the SMTP server to be used for sending mails. If the role is set, it has precedence
 * `node[:chiliproject][:email_delivery][:role]`
 * `node[:chiliproject][:email_delivery][:port]` - Port where the SMTP server listens.
-* `node[:chiliproject][:email_delivery][:login]` - Login method to pass to ActionMailer. Leave as nil to completely disable SMTP authentication
+* `node[:chiliproject][:email_delivery][:authentication]` - Login method to pass to ActionMailer. Leave as nil to completely disable SMTP authentication
 * `node[:chiliproject][:email_delivery][:username]` - Username for the SMTP server when using some authentication mechanism.
 * `node[:chiliproject][:email_delivery][:password]` - Password for the SMTP server when using some authentication mechanism.
 
@@ -110,7 +110,7 @@ Instance attributes have always precedence.
   * `email_delivery[:hostname]` - Use either the `hostname` or the `role` to define the SMTP server to be used for sending mails. If the role is set, it has precedence
   * `email_delivery[:role]`
   * `email_delivery[:port]` - Port where the SMTP server listens.
-  * `email_delivery[:login]` - Login method to pass to ActionMailer. Leave as nil to completely disable SMTP authentication
+  * `email_delivery[:authentication]` - Login method to pass to ActionMailer. Leave as nil to completely disable SMTP authentication
   * `email_delivery[:username]` - Username for the SMTP server when using some authentication mechanism.
   * `email_delivery[:password]` - Password for the SMTP server when using some authentication mechanism.
 * `memcached` - The memcached hosts or role to use for caching. This overrides the default from the node. See there for details.

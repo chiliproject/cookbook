@@ -142,12 +142,13 @@ define :chiliproject, :name => "default", :instance => nil do
       'address' => get_hosts(inst, 'email_delivery').first.ipaddress,
       'port' => inst_cfg['port'] || node_cfg['port'],
       'domain' => node['fqdn'],
+      'enable_starttls_auto' => true
     }
-    if (login = inst_cfg.has_key?('login') ? inst_cfg['login'] : node_cfg['login'])
+    if (authentication = inst_cfg.has_key?('authentication') ? inst_cfg['authentication'] : node_cfg['authentication'])
       cfg['smtp_settings'].merge!({
-        'login' => login,
-        "user_name" => inst_cfg['user_name'] || node_cfg['user_name'],
-        "user_name" => inst_cfg['password'] || node_cfg['password']
+        'authentication' => authentication.to_sym,
+        "user_name" => inst_cfg['username'] || node_cfg['username'],
+        "password" => inst_cfg['password'] || node_cfg['password']
       })
     end
   end

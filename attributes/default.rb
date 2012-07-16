@@ -81,7 +81,7 @@ default['chiliproject']['email_delivery']['role'] = nil
 default['chiliproject']['email_delivery']['port'] = 25
 # Login method to pass to ActionMailer
 # Leave as nil to completely disable SMTP authentication
-default['chiliproject']['email_delivery']['login'] = nil
+default['chiliproject']['email_delivery']['authentication'] = nil
 default['chiliproject']['email_delivery']['username'] = nil
 default['chiliproject']['email_delivery']['password'] = nil
 
