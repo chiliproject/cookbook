@@ -191,12 +191,71 @@ If you use a new cookbook, you also need an empty default recipe. A sample direc
 
     my_cookbook
     |-- definitions
-    |   |-- chiliproject_backlogs.rb
+    |   `-- chiliproject_backlogs.rb
     |-- recipes
-    |   |-- default.rb
+    |   `-- default.rb
     `-- README.md
 
 With this in place you just need to include `recipe[my_cookbook]` into your run list and reference the definition in the `callback` attribute of your plugin.
+
+### Additional gems and template files
+
+Sometimes it is necessary to install additional gems and config files outside of a plugin to the application. An example is [New Relic](https://newrelic.com) which requires to install a gem and create a config file in the `config` directory. we facilitate this withoutrequiring to fork this cookbook but by merely configuring it and adding the template for the config file to another (slim) cookbook.
+
+This facility solves rather specific use-cases. Generally, you should try to use self-contained plugins which are installed using the plugins facility described above. Plugins can require additional gems by shipping a Gemfile in their respectify root directory and thus don't need this facility at all.
+
+You can either define additional gems and config files for all instance by adding them to the respective node-global attribute or just for single instances by adding them only to the instance. The two definitions are merged during runtime.
+
+Additional gems can be added by extending either the `node['chiliproject']['local_gems']` of the node or the `local_gems` attribute of the instance. The key of the hash is the name of gem, the value is either `null` for installing the newest available gem, a single string for specifying the version in bundler syntax or an array of parameters for bundler.
+
+An example for installing the newest newrelic gem for an instance is
+
+    {
+      "local_gems": {
+        "newrelic_rpm": null
+      }
+    }
+
+To create an additional config file, you have to do two things:
+
+1. You have to create a cookbook which contains the template and ship it to the node.
+2. You have to configure your instance to create the config file.
+
+To create the template cookbook, you can create a new empty cookbook and put the template into the appropriate place. Most of the time, you also need to add an empty `default` recipe so you can add the cookbook to your run list and it gets pushed to the client in a chef server environment. An example layout for New Relic looks like this:
+
+    my_cookbook
+    |-- recipes
+    |   `-- default.rb
+    |-- templates
+    |   `-- default
+    |       `-- newrelic.yml.rb
+    `-- README.md
+
+The template receives a single variable, the normalized `instance` hash containing all information about the current instance. An example template for New Relic can be found [in this gist](https://gist.github.com/3362638). If you use this example, you also have to add this into your instance configuration to configure the license key:
+
+    "newrelic_license": "deadbeefdeadbeefdeadbeef"
+
+After you have created the template file, you have to configure your instance to actually create this file. This can be achieved by adding this to your instance config:
+
+    {
+      "config_files": {
+        "newrelic.yml": {
+          "source": "newrelic.yml.erb",
+          "cookbook": "my_cookbook",
+          "target": "config/newrelic.yml"
+        }
+      }
+    }
+
+While this config shows how to add a config file to a single instance, you can also configure it to be added to all instances. You can achieve this by adding the config to `node['chiliproject']['config_files']`.
+
+The key of the configuration hash denotes the file that is created in the `shared` directory. Make sure to chose a unique name that doesn't clash with existing files. The most important attributes then denote:
+
+* `source` - The template file in a cookbook which is used to generate the config file, by default `<name>.erb`
+* `cookbook` - The cookbook where the source template is searched in, by default `chiliproject`
+* `target` - The location where the file is symlinked to, relative to the instance's release path, by default `config/<name>`
+
+Any additional values are used to override settings of the template resource. See [its documentation](http://wiki.opscode.com/display/chef/Resources#Resources-Template) for details.
 
 # Usage
 

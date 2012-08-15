@@ -263,6 +263,35 @@ define :chiliproject, :name => "default", :instance => nil do
   end
 
   #############################################################################
+  # Setup Gemfile.local with any additional gems
+
+  template "#{inst['deploy_to']}/shared/Gemfile.local" do
+    source "Gemfile.local.erb"
+    owner inst['user']
+    group inst['group']
+    mode "0644"
+    variables :gems => inst['local_gems']
+  end
+
+  inst['config_files'].each_pair do |name, tmpl_params|
+    tmpl_params ||= {}
+
+    # link the resulting config file
+    node.run_state['chiliproject_deploy_symlinks'][name] = tmpl_params.delete('target') || "config/#{name}"
+
+    template "#{inst['deploy_to']}/shared/#{name}" do
+      source tmpl_params.delete("source") || "#{name}.erb"
+      cookbook tmpl_params.delete("cookbook") || "chiliproject"
+
+      owner inst['user']
+      group inst['group']
+
+      variables :instance => inst
+      tmpl_params.each_pair{|k, v| send(k.to_sym, v)}
+    end
+  end
+
+  #############################################################################
   # Now do the actual application deployment.
   # The fun starts here :)
 
@@ -304,6 +333,17 @@ define :chiliproject, :name => "default", :instance => nil do
     end
 
     before_migrate do
+      #########################################################################
+      # Link Gemfile.local in place
+      # This must be done here as symlinks_before_migrate runs too late for
+      # our bundle install
+      link File.join(release_path, "Gemfile.local") do
+        to "#{inst['deploy_to']}/shared/Gemfile.local"
+        owner inst['user']
+        group inst['group']
+      end
+
+
       #########################################################################
       # Link the plugins into place
 

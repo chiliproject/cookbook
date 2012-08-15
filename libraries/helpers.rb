@@ -21,6 +21,10 @@ module ChiliProject
           inst[k] = node['chiliproject'][k] unless inst.has_key?(k)
         end
 
+        %w[local_gems config_files].each do |k|
+          inst[k] = Chef::Mixin::DeepMerge.merge(node['chiliproject'][k].to_hash, inst[k] || {})
+        end
+
         inst['base_uri'] = inst['base_uri'] ? URI.parse(inst['base_uri']) : URI.parse("")
         inst['base_uri'].tap do |base_uri|
           base_uri.scheme ||= "http"

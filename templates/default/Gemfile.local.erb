@@ -1,0 +1,10 @@
+# Additional Gems for ChiliProject
+#
+# This script was automatically created by Chef.
+# All manual changes are going to be overridden
+#
+# Source: chiliproject::templates/default/Gemfile.local.erb
+
+<% @gems.each_pair do |name, params| %>
+gem <%= ([name] + Array(params)).collect(&:inspect).join(", ") %>
+<% end %>

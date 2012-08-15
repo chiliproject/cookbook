@@ -31,7 +31,21 @@ default['chiliproject']['migrate'] = true
 default['chiliproject']['force_deploy'] = false
 # Install all gems to vendor/bundle instead of the global gem store
 default['chiliproject']['bundle_vendor'] = false
-
+# Additional gems installed for each instance with bundler
+# Put the name of a Gem in the key and any restrictions in the value.
+# The value can be either null, a string specifying a version constraint
+# or an array with a version constraint and any additional bundler parameters
+default['chiliproject']['local_gems'] = {}
+# Additional config files to create
+# The key is the name of the file, the value is either null or a hash where
+# you can override various things:
+#  'target' - the location where the file is symlinked to, relative to the release path, by default "config/<name>"
+#  'source' - the template file in a cookbook which is used to generate the config file, by default "<name>.erb"
+#  'cookbook' - the cookbook where the source template is searched in, by default 'chiliproject'
+#
+# Any additional values are used to override settings of the template resource.
+# See http://wiki.opscode.com/display/chef/Resources#Resources-Template
+default['chiliproject']['config_files'] = {}
 
 # Setup logrotate if true
 default['chiliproject']['logrotate'] = true
