@@ -1,8 +1,8 @@
 # Chef Cookbook for ChiliProject
 
-This cookbook helps you to deploy one or more Chiliproject instances. Right now, it supports only a pre-packed ChiliProject source repository. That means if you require any additional plugins, you have to put them into your source repository before installing it here.
+This cookbook helps you to deploy one or more Chiliproject instances including external plugins. We support MySQL, Postgres and SQLite3 as a database. You can mix and match the database engines between instances.
 
-We support MySQL, Postgres and SQLite3 as a database. You can mix and match the database engines between instances.
+This cookbook relies on [data bags](http://wiki.opscode.com/display/chef/Data+Bags) to define ChiliProject instances. See the `examples` directory for example data bag items which you can use to setup your own instances.
 
 All of the requirements are explicitly defined in the recipes. Every effort has been made to utilize official Opscode cookbooks.
 
