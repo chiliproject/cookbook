@@ -1,14 +1,4 @@
-<%
-  def common_url(force_ssl=false)
-    if @params[:ssl] || force_ssl
-      port = ":#{@params[:https_port]}" unless @params[:https_port] == 443
-      "https://#{@application_name}#{port}"
-    else
-      port = ":#{@params[:http_port]}" unless @params[:http_port] == 80
-      "http://#{@application_name}#{port}"
-    end
-  end
-%>
+<% self.extend ChiliProject::ApacheHelpers %>
 <VirtualHost *:<%= @params[:http_port] %>>
   ServerName <%= @application_name %>
   ServerAlias <%= @params[:server_aliases].join(" ") %>
