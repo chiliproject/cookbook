@@ -119,5 +119,33 @@ module ChiliProject
 
       hash
     end
+
+    def db_admin_connection_info(instance)
+      # Returns the DB connection info required to create users and databases
+      # This data should not be used for nortmal operation.
+
+      info = {
+        :database => instance['database']['database']
+      }
+
+      unless instance['database']['adapter'] == "sqlite3"
+        info[:host] = instance['database']['host']
+        info[:port] = instance['database']['port']
+        info[:username] = instance['database']['superuser']
+        info[:password] = instance['database']['superuser_password']
+      end
+
+      case instance['database']['adapter']
+      when "mysql2"
+        info[:username] ||= "root"
+        info[:password] ||= node['mysql']['server_root_password']
+      when "postgresql"
+        info[:database] = "postgres"
+      when "sqlite3"
+        # do nothing special here
+      end
+
+      info
+    end
   end
 end
