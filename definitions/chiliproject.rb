@@ -304,7 +304,7 @@ define :chiliproject, :name => "default", :instance => nil do
   adapter_group = case inst['database']['adapter']
     when 'postgresql' then "postgres"
     when "sqlite3" then "sqlite"
-    else db['adapter']
+    else inst['database']['adapter']
   end
   ignored_bundler_groups += (database_groups - [adapter_group])
 
