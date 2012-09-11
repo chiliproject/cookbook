@@ -78,7 +78,7 @@
   RewriteLog <%= @params[:log_dir] %>/<%= @application_name %>-rewrite.log
   RewriteLogLevel 0
 
-  <% if @params[:serve_aliases] %>
+  <% unless @params[:serve_aliases] %>
   # Canonical host, <%= @application_name %>
   RewriteCond %{HTTP_HOST}   !^<%= @application_name %> [NC]
   RewriteCond %{HTTP_HOST}   !^$
