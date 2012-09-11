@@ -14,7 +14,7 @@ module ChiliProject
         inst['log_dir'] ||= "#{node['chiliproject']['log_dir']}/#{inst['id']}"
         inst['shared_dir'] ||= "#{node['chiliproject']['shared_dir']}/#{inst['id']}"
 
-        %w[repository revision].each do |k|
+        %w[repository revision repository_hosting].each do |k|
           inst[k] ||= node['chiliproject'][k]
         end
         %w[migrate force_deploy bundle_vendor logrotate].each do |k|

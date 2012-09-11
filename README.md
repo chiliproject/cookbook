@@ -257,6 +257,23 @@ The key of the configuration hash denotes the file that is created in the `share
 
 Any additional values are used to override settings of the template resource. See [its documentation](http://wiki.opscode.com/display/chef/Resources#Resources-Template) for details.
 
+### Git and Subversion Hosting
+
+Often it is desireable for a ChiliProject instance to provide hosting for the repositories used with it. Right now, we support hosting of Git and Subversion repositories over HTTP with Apache. We do not yet support other protocols like SSH out of the box. However, there exist plugins for that which can be integrated. Refer to the [#Plugins](plugins) section above for details.
+
+For Subversion hosting, we use `mod_dav_svn` module for Apache, for Git we use the `git-http-backend` shipped with Git as a CGI application. Both variants handle authentication using `mod_perl` and the `ChiliProject.pm` Perl module shipped with ChiliProject since 3.4.0. **Since authentication is an expensive operation which needs to be performed often during repository access, it is strongly recommended to use a memcached cache.**
+
+Since we can only have one instance of the `ChiliProject.pm` module enabled per server which is thus shared between all ChiliProject instances, we have to select one instance to provide the module. It is important that you chose one which is compatible with all your instances. By default, we chose the first instance found, but you can override that by setting `node['chiliproject']['instance_for_chiliproject_pm']` (e.g. in a role).
+
+By default, we do not enable repository hosting. To enable one or more repository types, add the respective type to the array of `node['chiliproject']['instance_for_chiliproject_pm']` to enable them for all instances or set the array `instance['instance_for_chiliproject_pm']`. The values are deep merged between the node attribute and the instance. The valid values for the respective repository types are:
+
+* `"subversion"`
+* `"git"`
+
+**Known issues**
+
+* We do not yet create repositories. YOu still have to setup `reposman.rb` for that.
+
 # Usage
 
 This is still a little slim. But you get the gist...

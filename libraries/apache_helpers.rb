@@ -9,5 +9,14 @@ module ChiliProject
         "http://#{@application_name}#{port}"
       end
     end
+
+    def load_chiliproject_pm
+      return if @chiliproject_pm_loaded
+
+      @chiliproject_pm_loaded = true
+      if @params[:passenger_paths].values.any?{ |inst| inst['repository_hosting'].any? }
+        "PerlLoadModule Apache::ChiliProject"
+      end
+    end
   end
 end

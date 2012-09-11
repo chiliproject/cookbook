@@ -1,4 +1,6 @@
 <% self.extend ChiliProject::ApacheHelpers %>
+
+<%= load_chiliproject_pm %>
 <VirtualHost *:<%= @params[:http_port] %>>
   ServerName <%= @application_name %>
   ServerAlias <%= @params[:server_aliases].join(" ") %>
@@ -30,21 +32,60 @@
   <Location <%= path %>>
     RailsEnv <%= inst['rails_env'] %>
   </Location>
-  <% end %>
 
-  <Location /server-status>
-    SetHandler server-status
-
+  # Allow access to the sys controller only from the local system
+  # There might be required additional IPs if the repository creation is done
+  # off-site
+  <Location <%= path unless path=="/" %>/sys>
     Order Deny,Allow
     Deny from all
     Allow from 127.0.0.1
     Allow from <%= node[:ipaddress] %>
   </Location>
 
-  # Allow access to the sys controller only from the local system
-  # There might be required additional IPs if the repository creation is done
-  # off-site
-  <Location /sys>
+  <% if inst['repository_hosting'].include?('subversion') %>
+  <Location <%= path unless path=="/" %>/svn>
+    DAV svn
+    SVNParentPath "<%= node['chiliproject']['shared_dir'] + "/#{inst['id']}/svn" %>"
+    DirectorySlash Off
+
+    AuthType Basic
+    AuthName "Secured Area"
+    Require valid-user
+
+    PerlAccessHandler Apache::Authn::ChiliProject::access_handler
+    PerlAuthenHandler Apache::Authn::ChiliProject::authen_handler
+    ChiliProjectBaseUrl '<%= common_url(false) %>'
+    <% if inst['sys_key'] %>ChiliProjectApiKey '<%= inst['sys_key'] %>'<% end %>
+
+    PassengerEnabled Off
+  </Location>
+  <% end %>
+
+  <% if inst['repository_hosting'].include?('git') %>
+  ScriptAlias <%= path unless path=="/" %>/git/ "<%= node['chiliproject']['git-http-backend'] %>/"
+  <Location <%= path unless path=="/" %>/git>
+    SetEnv GIT_PROJECT_ROOT "<%= node['chiliproject']['shared_dir'] + "/#{inst['id']}/git" %>"
+    SetEnv GIT_HTTP_EXPORT_ALL
+
+    AuthType Basic
+    AuthName "Secured Area"
+    Require valid-user
+
+    PerlAccessHandler Apache::Authn::ChiliProject::access_handler
+    PerlAuthenHandler Apache::Authn::ChiliProject::authen_handler
+    ChiliProjectBaseUrl '<%= common_url(false) %>'
+    <% if inst['sys_key'] %>ChiliProjectApiKey '<%= inst['sys_key'] %>'<% end %>
+    ChiliProjectGitSmartHttp yes
+
+    PassengerEnabled Off
+  </Location>
+  <% end %>
+  <% end %>
+
+  <Location /server-status>
+    SetHandler server-status
+
     Order Deny,Allow
     Deny from all
     Allow from 127.0.0.1

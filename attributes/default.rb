@@ -118,3 +118,31 @@ default['chiliproject']['apache']['document_root'] = "/var/www"
 # Where to search for a template for the Apache config
 default['chiliproject']['apache']['cookbook'] = "chiliproject"
 default['chiliproject']['apache']['template'] = "apache.conf.erb"
+
+##############################################################################
+# Repositories
+
+# supported values: subversion, git
+default['chiliproject']['repository_hosting'] = []
+default['chiliproject']['git-http-backend'] = '/usr/lib/git-core/git-http-backend'
+
+# When using Apache-based repository hosting with ChiliProject.pm, the shipped
+# version of which deployed ChiliProject instance should be used?
+# Apache can only load one instance of the Perl module at a time, so we have to
+# use one module for all instances running on this server. All instances MUST
+# be compatible with this module version.
+# If not set, the first found instance will be used. You are strongly advised
+# to set this if you have more than one instance!
+default['chiliproject']['chiliproject_pm']['instance'] = nil
+
+# This path needs to be in the @INC for mod_perl of the specific platform
+case platform_family
+when "debian"
+  default['chiliproject']['chiliproject_pm']['perl_lib_dir'] = "/usr/lib/perl5"
+when "redhat", "fedora"
+  default['chiliproject']['chiliproject_pm']['perl_lib_dir'] = "/usr/lib/perl5/site_perl"
+when "suse"
+  default['chiliproject']['chiliproject_pm']['perl_lib_dir'] = "/srv/www/perl-lib"
+else
+  default['chiliproject']['chiliproject_pm']['perl_lib_dir'] = "/usr/lib/perl5"
+end

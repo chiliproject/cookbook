@@ -21,6 +21,48 @@ data_bag("chiliproject").each do |name|
   end
 
   include_recipe "apache2::mod_ssl" if inst['base_uri'].scheme == "https"
+
+  unless inst['repository_hosting'].empty?
+    include_recipe "chiliproject::chiliproject_pm"
+
+    group "#{inst['group']}_repo" do
+      members [inst['user'], node['apache']['user']]
+    end
+
+    directory "#{node['chiliproject']['shared_dir']}/#{inst['id']}" do
+      owner 'root'
+      group 'root'
+      mode '0755'
+      recursive true
+    end
+
+    ##########################################################################
+    # Hosted Git repopsitories
+    if inst['repository_hosting'].include?('git')
+      include_recipe "apache2::mod_cgi"
+      include_recipe "apache2::mod_alias"
+      include_recipe "apache2::mod_env"
+
+      directory "#{node['chiliproject']['shared_dir']}/#{inst['id']}/git" do
+        owner node['apache']['user']
+        group "#{inst['group']}_repo"
+        mode '2750'
+      end
+    end
+
+    ##########################################################################
+    # Hosted Subversion repositories
+    if inst['repository_hosting'].include?('svn')
+      include_recipe "subversion::client"
+      include_recipe "apache2::mod_dav_svn"
+
+      directory "#{node['chiliproject']['shared_dir']}/#{inst['id']}/svn" do
+        owner node['apache']['user']
+        group "#{inst['group']}_repo"
+        mode '2750'
+      end
+    end
+  end
 end
 
 
@@ -124,6 +166,11 @@ vhosts.each_pair do |hostname, paths|
       end
     end
   end
+
+  # Force the file mode if the vhost to be more restrictive than default to
+  # protect the API key.
+  t = resources(:template => "#{node['apache']['dir']}/sites-available/#{hostname}.conf")
+  t.mode "0640"
 end
 
 ##########################################################################
