@@ -1,4 +1,4 @@
-self.class.send(:include, ChiliProject::Helpers)
+extend ChiliProject::Helpers
 
 # First create the required databases if configured
 include_recipe "chiliproject::database"

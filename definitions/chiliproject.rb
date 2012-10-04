@@ -8,6 +8,8 @@ require 'yaml'
 # inst = chiliproject_instance "my_instance"
 
 define :chiliproject, :name => "default", :instance => nil do
+  extend ChiliProject::Helpers
+
   inst = params[:instance]
 
   # Reset the list of additional files to symlink before migration

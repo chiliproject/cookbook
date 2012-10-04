@@ -1,4 +1,4 @@
-self.class.send(:include, ChiliProject::Helpers)
+extend ChiliProject::Helpers
 
 data_bag("chiliproject").each do |name|
   inst = chiliproject_instance(name)

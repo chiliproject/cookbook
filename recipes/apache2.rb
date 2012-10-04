@@ -1,4 +1,4 @@
-self.class.send(:include, ChiliProject::Helpers)
+extend ChiliProject::Helpers
 
 include_recipe "chiliproject"
 

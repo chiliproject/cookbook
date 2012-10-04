@@ -1,3 +1,10 @@
+# If you use this definition by yourself, make sure to pass a properly setup
+# instance. You can create one using the chiliproject_instance helper from a
+# databag item
+#
+# extend ChiliProject::Helpers
+# inst = chiliproject_instance "my_instance"
+
 define :chiliproject_netrc, :name => "default", :instance => {} do
   inst = params[:instance]
 
