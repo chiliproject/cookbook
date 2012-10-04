@@ -89,11 +89,13 @@ module ChiliProject
       when /mysql/i
         hash['adapter'] = "mysql2"
         db_slug = "chili_#{instance['id'].downcase.gsub(/[^a-z]/, '_')}"[0..15]
-        db_port = 3306
+        hash['port'] ||= 3306
+        hash['collation'] ||= "utf8_unicode_ci"
       when /postgres/i
         hash['adapter'] = "postgresql"
         db_slug = "chili_#{instance['id'].downcase.gsub(/[^a-z]/, '_')}"
-        db_port = 5432
+        hash['port'] ||= 5432
+        hash['collation'] ||= "en_US.utf8"
       else
         raise "Unknown database adapter #{hash['adapter']} specified for ChiliProject #{instance['id']}"
       end
@@ -102,7 +104,6 @@ module ChiliProject
       unless hash['adapter'] == "sqlite3"
         hash['host'] = get_hosts(instance, 'database', 'role', 'hostname').first.ipaddress
         hash['username'] ||= db_slug
-        hash['port'] ||= db_port
 
         if !hash['password'] || hash['password'].strip == ""
           raise "The ChiliProject instance #{instance['id']} needs a password!"

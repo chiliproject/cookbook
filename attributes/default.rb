@@ -62,7 +62,7 @@ default['chiliproject']['database']['role'] = nil
 # We use the default port for the chosen adapter by default
 default['chiliproject']['database']['port'] = nil
 default['chiliproject']['database']['encoding'] = "utf8"
-default['chiliproject']['database']['collation'] = "en_US.utf8"
+default['chiliproject']['database']['collation'] = nil
 default['chiliproject']['database']['reconnect'] = true
 # Don't connect to the database via SSL by default
 # This option is still a no-op
