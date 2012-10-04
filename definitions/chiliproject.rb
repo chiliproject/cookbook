@@ -465,7 +465,7 @@ define :chiliproject, :name => "default", :instance => nil do
   end
 
   #############################################################################
-  # Finally setup logrotate for the logfiles
+  # Setup logrotate for the logfiles
 
   if inst['logrotate']
     logrotate_app "ChiliProject #{inst['id']}" do
@@ -473,6 +473,13 @@ define :chiliproject, :name => "default", :instance => nil do
       frequence "weekly"
       rotate 8
       create "640 #{inst['user']} #{inst['group']}"
+    end
+  end
+
+  unless inst['settings'].empty?
+    chiliproject_settings "Enforce instance settings for #{inst['id']}" do
+      values inst['settings']
+      instance inst
     end
   end
 end

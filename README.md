@@ -133,6 +133,7 @@ Instance attributes have always precedence.
   * `apache['ssl_certificate_file']` - The path to the SSL certificate file when using SSL.
   * `apache['ssl_key_file']` - The path to the SSL key file when using SSL.
   * `apache['ssl_ca_certificate_file']` - The path to the SSL CS certificate file when using SSL.
+* `settings` - Chiliproject settings for the instance. These are enforced in the instance's database. It is a hash containing the internal ChiliProject settings keys as keys and the values which are going to be set into the database. Make sure you use the correct data type (String, Integer, Boolean, ...). Have a look into `config/settings.yml` in an instance for a list of valid config keys and default values.
 
 It should be noted that in the `apache` group, when using sub-paths, all instances configured under the same virtual host (with `base_uri`) have to share all these settings (with the exception of aliases). Thus, you need to configure these instances with the exact same values.
 
