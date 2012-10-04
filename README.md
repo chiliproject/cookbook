@@ -279,10 +279,11 @@ By default, we do not enable repository hosting. To enable one or more repositor
 
 This is still a little slim. But you get the gist...
 
-There are two recipes you need to concern yourself with:
+There are several recipes:
 
 * `default` - Installs all configured instances to the node. If configured (`node['chiliproject']['database']['create_if_missing']`) it also creates the required database and database user. If you disable this,. you have to create them before running this recipe.
 * `apache2` - Sets up an Apache2 server with Passenger for hosting all the instances. This is optional and we will probably provide additional configuration options in the future (e.g nginx + passenger, nginx + thin, ...)
+* `database` - Sets up the databases required by ChiliProject. It uses the Opscode database cookbook.
 
 # Known issues
 
