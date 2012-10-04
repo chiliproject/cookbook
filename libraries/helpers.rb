@@ -123,7 +123,7 @@ module ChiliProject
 
     def db_admin_connection_info(instance)
       # Returns the DB connection info required to create users and databases
-      # This data should not be used for nortmal operation.
+      # This data should not be used for normal operation.
 
       info = {
         :database => instance['database']['database']
