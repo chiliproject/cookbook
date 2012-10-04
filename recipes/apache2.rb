@@ -1,5 +1,7 @@
 self.class.send(:include, ChiliProject::Helpers)
 
+include_recipe "chiliproject"
+
 include_recipe "apache2"
 include_recipe "apache2::mod_rewrite"
 include_recipe "passenger_apache2::mod_rails"
@@ -24,6 +26,18 @@ data_bag("chiliproject").each do |name|
 
   unless inst['repository_hosting'].empty?
     include_recipe "chiliproject::chiliproject_pm"
+
+    if !inst['sys_key'] || inst['sys_key'].empty?
+      raise "You have to configure a sys_key to use repository hosting for ChiliProject instance #{inst['id']}."
+    end
+
+    chiliproject_settings "Enable SYS API for #{inst['id']}" do
+      values ({
+        "sys_api_key" => inst['sys_key'],
+        "sys_api_enabled" => 1
+      })
+      instance inst
+    end
 
     group "#{inst['group']}_repo" do
       members [inst['user'], node['apache']['user']]
