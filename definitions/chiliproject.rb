@@ -1,8 +1,11 @@
 require 'yaml'
 
-# If you use this definition by yourself, you might need to incldue our helpers
-# module into your reciope yourself.
-# self.class.send(:include, ChiliProject::Helpers)
+# If you use this definition by yourself, make sure to pass a properly setup
+# instance. You can create one using the chiliproject_instance helper from a
+# databag item
+#
+# extend ChiliProject::Helpers
+# inst = chiliproject_instance "my_instance"
 
 define :chiliproject, :name => "default", :instance => nil do
   inst = params[:instance]
@@ -475,6 +478,9 @@ define :chiliproject, :name => "default", :instance => nil do
       create "640 #{inst['user']} #{inst['group']}"
     end
   end
+
+  #############################################################################
+  # Enforce the default settings into the database
 
   unless inst['settings'].empty?
     chiliproject_settings "Enforce instance settings for #{inst['id']}" do
