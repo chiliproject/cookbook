@@ -18,7 +18,7 @@ depends "imagemagick"
 depends "apache2"
 depends "passenger_apache2"
 
-depends "database"
+depends "database", ">= 1.3.0"
 depends "postgresql"
 depends "mysql"
 depends "sqlite"

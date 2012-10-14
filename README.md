@@ -291,7 +291,6 @@ There are several recipes:
   * You are using sub-path deployments
   * You are using the `chiliproject::apache2` cookbook for setting up Passenger
 * For similar reasons, you need Chef >= 10.12.0 when installing plugins.
-* When trying to set a database encoding which is different from the default `LC_CTYPE` with PostgreSQL, the database can not be created. The cause is [a bug in the database cookbook](http://tickets.opscode.com/browse/COOK-1401).
 
 # License
 
