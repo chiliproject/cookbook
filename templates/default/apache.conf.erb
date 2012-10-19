@@ -174,7 +174,6 @@
   CustomLog <%= @params[:log_dir] %>/<%= @application_name %>-access.log combined
 
   SSLEngine On
-  SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL
   SSLCertificateFile <%= @params[:ssl_certificate_file] %>
   SSLCertificateKeyFile <%= @params[:ssl_key_file] %>
   <% if @params[:ssl_ca_certificate_file] %>
