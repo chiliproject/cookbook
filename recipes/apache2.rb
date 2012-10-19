@@ -87,7 +87,6 @@ data_bag("chiliproject").each do |name|
   end
 end
 
-
 ##########################################################################
 # 2. For the matched vhosts, generate the apache config
 
@@ -204,12 +203,11 @@ vhosts.each_pair do |hostname, paths|
 end
 
 ##########################################################################
-# 4. Disable the default Apache vhost
+# 3. Disable the default Apache vhost
 
 apache_site "000-default" do
   enable !vhosts.any?
 end
-
 
 ##########################################################################
 # 4. restart instances if necessary
