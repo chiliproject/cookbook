@@ -32,10 +32,8 @@ data_bag("chiliproject").each do |name|
     end
 
     chiliproject_settings "Enable SYS API for #{inst['id']}" do
-      values ({
-        "sys_api_key" => inst['sys_key'],
-        "sys_api_enabled" => 1
-      })
+      values "sys_api_key" => inst['sys_key'],
+             "sys_api_enabled" => 1
       instance inst
     end
 
