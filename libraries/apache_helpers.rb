@@ -1,6 +1,6 @@
 module ChiliProject
   module ApacheHelpers
-    def common_url(ssl=@params[:ssl])
+    def common_url(ssl=@params[:force_ssl])
       if ssl
         port = ":#{@params[:https_port]}" unless @params[:https_port] == 443
         "https://#{@application_name}#{port}"

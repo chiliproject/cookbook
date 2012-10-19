@@ -95,6 +95,7 @@ Instance attributes have always precedence.
 ## Instance attributes
 
 * `base_uri` - A URI which specifies how the instance can be reached later. You can specify the primary protocol (`http` or `https`), the port, hostname and path here. Note that nested sub-paths are not supported right now.
+* `remote_uri` - A URI specifying how users reach the instance. Most of the time it is the same as the `base_uri` (and thus doesn't need to be set). However, if you have reverse-proxies (like a loadbalancer) installed, the URLs can differ. If this is the case, set the `base_uri` to the URL on which the internal application server should respond. The `external_uri` then defines how links and redirects are generated.
 * `repository` - The repository URL to retrieve ChiliProject from, by default `https://github.com/chiliproject/chiliproject.git`
 * `revision` - The revision to install. Can be either a SHA hash, a branch name or a tag. By default we use the `stable` branch.
 * `database` - Merged with the node attributes. See the description of the node database attributes for details.

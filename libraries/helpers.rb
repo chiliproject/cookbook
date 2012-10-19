@@ -25,12 +25,16 @@ module ChiliProject
           inst[k] = Chef::Mixin::DeepMerge.merge(node['chiliproject'][k].to_hash, inst[k] || {})
         end
 
-        inst['base_uri'] = inst['base_uri'] ? URI.parse(inst['base_uri']) : URI.parse("")
-        inst['base_uri'].tap do |base_uri|
-          base_uri.scheme ||= "http"
-          base_uri.host ||= inst['id'].gsub(/_/, '.')
-          base_uri.path = "/" if base_uri.path == ""
+        inst['external_uri'] ||= inst['base_uri']
+        %w[base_uri external_uri].each do |uri_name|
+          inst[uri_name] = inst[uri_name] ? URI.parse(inst[uri_name]) : URI.parse("")
+          inst[uri_name].tap do |uri|
+            uri.scheme ||= "http"
+            uri.host ||= inst['id'].gsub(/_/, '.')
+            uri.path = "/" if uri.path == ""
+          end
         end
+
         inst['database'] = chiliproject_database(inst)
         inst['rails_env'] ||= node.chef_environment =~ /_default/ ? 'production' : node.chef_environment.to_s
         inst['apache'] = node['chiliproject']['apache'].merge(inst['apache'] || {}) do |key, old_value, new_value|
