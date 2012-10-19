@@ -129,13 +129,14 @@
 
   <% if @params[:force_ssl] %>
   # Force SSL
-  RewriteCond %{HTTPS} !=on
-  <% unless @params[:ssl] %>
-  # This header must be set by a reverse proxy for SSL connections
-  RewriteCond %{HTTP:X-Forwarded-Proto} !^https$
-  <% end %>
+  <% if @params[:ssl] %>
   RewriteCond %{REMOTE_ADDR} !^(127\..*)$
-  RewriteCond %{REMOTE_ADDR} !^::1$
+  RewriteCond %{REMOTE_ADDR} !=::1
+  <% else %>
+  # This header must be set by a reverse proxy for SSL connections
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  <% end %>
+
   RewriteRule ^/(.*)$ <%= common_url(true) %>/$1 [R=301,L,QSA]
   <% end %>
 
