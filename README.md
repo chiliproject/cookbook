@@ -253,9 +253,10 @@ While this config shows how to add a config file to a single instance, you can a
 
 The key of the configuration hash denotes the file that is created in the `shared` directory. Make sure to chose a unique name that doesn't clash with existing files. The most important attributes then denote:
 
-* `source` - The template file in a cookbook which is used to generate the config file, by default `<name>.erb`
-* `cookbook` - The cookbook where the source template is searched in, by default `chiliproject`
-* `target` - The location where the file is symlinked to, relative to the instance's release path, by default `config/<name>`
+* `source` - The template file in a cookbook which is used to generate the config file, by default `"<name>.erb"`
+* `cookbook` - The cookbook where the source template is searched in, by default `"chiliproject"`
+* `target` - The location where the file is symlinked to, relative to the instance's release path, by default `"config/<name>"`
+* `mode` - The file access mode for the generated file. You should only use four character long strings here (most often with a leading 0). The default is `"0644"`
 
 Any additional values are used to override settings of the template resource. See [its documentation](http://wiki.opscode.com/display/chef/Resources#Resources-Template) for details.
 

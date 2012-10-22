@@ -278,8 +278,11 @@ define :chiliproject, :name => "default", :instance => nil do
     variables :gems => inst['local_gems']
   end
 
-  inst['config_files'].each_pair do |name, tmpl_params|
-    tmpl_params ||= {}
+  #############################################################################
+  # Create additional configuration files
+
+  inst['config_files'].each_pair do |name, params|
+    tmpl_params = !params ? {} : params.dup
 
     # link the resulting config file
     node.run_state['chiliproject_deploy_symlinks'][name] = tmpl_params.delete('target') || "config/#{name}"
@@ -290,6 +293,7 @@ define :chiliproject, :name => "default", :instance => nil do
 
       owner inst['user']
       group inst['group']
+      mode tmpl_params.delete("mode") || "0644"
 
       variables :instance => inst
       tmpl_params.each_pair{|k, v| send(k.to_sym, v)}
