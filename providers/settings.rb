@@ -56,10 +56,8 @@ def set_now(settings)
     opts[:live_stream] = STDOUT
   end
 
-  converge_by("Set #{settings.keys.map(&:to_s).join(", ")}") do
-    result = shell_out!(command, opts)
-    Chef::Log.info("#{new_resource} ran successfully")
-  end
+  result = shell_out!(command, opts)
+  Chef::Log.info("#{new_resource} ran successfully")
   new_resource.updated_by_last_action(true)
 
   if new_resource.name == "Delayed Settings for #{inst['id']}"
