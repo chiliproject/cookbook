@@ -190,7 +190,8 @@ define :chiliproject, :name => "default", :instance => nil do
   end
 
   yaml = [inst['rails_env'], 'development'].uniq.inject({}) do |yaml, key|
-    yaml[key] = inst['database']['database_yml']
+    # dup to avoid anchors in the generated YAML
+    yaml[key] = inst['database']['database_yml'].dup
     yaml
   end
   file "#{inst['deploy_to']}/shared/database.yml" do
