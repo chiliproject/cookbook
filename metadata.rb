@@ -13,6 +13,8 @@ recipe "chiliproject::database", "Setup required databases and users for ChiliPr
 end
 
 depends "git"
+depends "subversion"
+depends "build-essential" # for chiliproject::sqlite-ruby
 depends "logrotate"
 depends "imagemagick"
 depends "apache2"
