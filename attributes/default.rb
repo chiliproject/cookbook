@@ -139,7 +139,7 @@ default['chiliproject']['chiliproject_pm']['instance'] = nil
 case platform_family
 when "debian"
   default['chiliproject']['chiliproject_pm']['perl_lib_dir'] = "/usr/lib/perl5"
-when "redhat", "fedora"
+when "rhel", "fedora"
   default['chiliproject']['chiliproject_pm']['perl_lib_dir'] = "/usr/lib/perl5/site_perl"
 when "suse"
   default['chiliproject']['chiliproject_pm']['perl_lib_dir'] = "/srv/www/perl-lib"
