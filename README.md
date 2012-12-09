@@ -1,4 +1,4 @@
-# Chef Cookbook for ChiliProject
+# Chef Cookbook for ChiliProject [![Build Status](https://secure.travis-ci.org/meineerde-cookbooks/chiliproject.png?branch=master)](https://travis-ci.org/meineerde-cookbooks/chiliproject)
 
 This cookbook helps you to deploy one or more Chiliproject instances including external plugins. We support MySQL, Postgres and SQLite3 as a database. You can mix and match the database engines between instances.
 
