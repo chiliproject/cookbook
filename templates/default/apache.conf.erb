@@ -18,7 +18,7 @@
     Order Deny,Allow
     Deny from all
     Allow from 127.0.0.1
-    Allow from <%= node[:ipaddress] %>
+    Allow from <%= node['ipaddress'] %>
     <% else %>
     Order Allow,Deny
     Allow from all
@@ -40,7 +40,7 @@
     Order Deny,Allow
     Deny from all
     Allow from 127.0.0.1
-    Allow from <%= node[:ipaddress] %>
+    Allow from <%= node['ipaddress'] %>
   </Location>
 
   <% if inst['repository_hosting'].include?('subversion') %>
@@ -89,7 +89,7 @@
     Order Deny,Allow
     Deny from all
     Allow from 127.0.0.1
-    Allow from <%= node[:ipaddress] %>
+    Allow from <%= node['ipaddress'] %>
   </Location>
 
   # Deflate
@@ -127,10 +127,16 @@
   RewriteRule ^/(.*)$        <%= common_url %>/$1 [L,R=301,QSA]
   <% end %>
 
-  <% if @params[:ssl] %>
+  <% if @params[:force_ssl] %>
   # Force SSL
-  RewriteCond %{HTTPS} !=on
+  <% if @params[:ssl] %>
   RewriteCond %{REMOTE_ADDR} !^(127\..*)$
+  RewriteCond %{REMOTE_ADDR} !=::1
+  <% else %>
+  # This header must be set by a reverse proxy for SSL connections
+  RewriteCond %{HTTP:X-Forwarded-Proto} !=https
+  <% end %>
+
   RewriteRule ^/(.*)$ <%= common_url(true) %>/$1 [R=301,L,QSA]
   <% end %>
 
@@ -174,7 +180,6 @@
   CustomLog <%= @params[:log_dir] %>/<%= @application_name %>-access.log combined
 
   SSLEngine On
-  SSLCipherSuite ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP:+eNULL
   SSLCertificateFile <%= @params[:ssl_certificate_file] %>
   SSLCertificateKeyFile <%= @params[:ssl_key_file] %>
   <% if @params[:ssl_ca_certificate_file] %>
@@ -228,7 +233,7 @@
     Order Deny,Allow
     Deny from all
     Allow from 127.0.0.1
-    Allow from <%= node[:ipaddress] %>
+    Allow from <%= node['ipaddress'] %>
   </Location>
 
   RewriteEngine On

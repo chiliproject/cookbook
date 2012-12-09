@@ -1,0 +1,6 @@
+language: ruby
+gemfile:
+  - test/support/Gemfile
+rvm:
+  - 1.9.3
+script: rake foodcritic

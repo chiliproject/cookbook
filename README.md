@@ -1,4 +1,4 @@
-# Chef Cookbook for ChiliProject
+# Chef Cookbook for ChiliProject [![Build Status](https://secure.travis-ci.org/meineerde-cookbooks/chiliproject.png?branch=master)](https://travis-ci.org/meineerde-cookbooks/chiliproject)
 
 This cookbook helps you to deploy one or more Chiliproject instances including external plugins. We support MySQL, Postgres and SQLite3 as a database. You can mix and match the database engines between instances.
 
@@ -95,6 +95,7 @@ Instance attributes have always precedence.
 ## Instance attributes
 
 * `base_uri` - A URI which specifies how the instance can be reached later. You can specify the primary protocol (`http` or `https`), the port, hostname and path here. Note that nested sub-paths are not supported right now.
+* `remote_uri` - A URI specifying how users reach the instance. Most of the time it is the same as the `base_uri` (and thus doesn't need to be set). However, if you have reverse-proxies (like a loadbalancer) installed, the URLs can differ. If this is the case, set the `base_uri` to the URL on which the internal application server should respond. The `external_uri` then defines how links and redirects are generated.
 * `repository` - The repository URL to retrieve ChiliProject from, by default `https://github.com/chiliproject/chiliproject.git`
 * `revision` - The revision to install. Can be either a SHA hash, a branch name or a tag. By default we use the `stable` branch.
 * `database` - Merged with the node attributes. See the description of the node database attributes for details.
@@ -252,9 +253,10 @@ While this config shows how to add a config file to a single instance, you can a
 
 The key of the configuration hash denotes the file that is created in the `shared` directory. Make sure to chose a unique name that doesn't clash with existing files. The most important attributes then denote:
 
-* `source` - The template file in a cookbook which is used to generate the config file, by default `<name>.erb`
-* `cookbook` - The cookbook where the source template is searched in, by default `chiliproject`
-* `target` - The location where the file is symlinked to, relative to the instance's release path, by default `config/<name>`
+* `source` - The template file in a cookbook which is used to generate the config file, by default `"<name>.erb"`
+* `cookbook` - The cookbook where the source template is searched in, by default `"chiliproject"`
+* `target` - The location where the file is symlinked to, relative to the instance's release path, by default `"config/<name>"`
+* `mode` - The file access mode for the generated file. You should only use four character long strings here (most often with a leading 0). The default is `"0644"`
 
 Any additional values are used to override settings of the template resource. See [its documentation](http://wiki.opscode.com/display/chef/Resources#Resources-Template) for details.
 

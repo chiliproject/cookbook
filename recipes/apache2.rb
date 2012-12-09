@@ -24,6 +24,16 @@ data_bag("chiliproject").each do |name|
 
   include_recipe "apache2::mod_ssl" if inst['base_uri'].scheme == "https"
 
+  webhost_uri  = inst['external_uri'].host
+  webhost_uri += ":#{inst['external_uri'].port}" unless inst['external_uri'].port == inst['external_uri'].default_port
+  webhost_uri += inst['external_uri'].path unless inst['external_uri'].path == "/"
+
+  chiliproject_settings "Set hostname for #{inst['id']}" do
+    values "host_name" => webhost_uri,
+           "protocol" => inst['external_uri'].scheme
+    instance inst
+  end
+
   unless inst['repository_hosting'].empty?
     include_recipe "chiliproject::chiliproject_pm"
 
@@ -32,10 +42,8 @@ data_bag("chiliproject").each do |name|
     end
 
     chiliproject_settings "Enable SYS API for #{inst['id']}" do
-      values ({
-        "sys_api_key" => inst['sys_key'],
-        "sys_api_enabled" => 1
-      })
+      values "sys_api_key" => inst['sys_key'],
+             "sys_api_enabled" => 1
       instance inst
     end
 
@@ -79,7 +87,6 @@ data_bag("chiliproject").each do |name|
   end
 end
 
-
 ##########################################################################
 # 2. For the matched vhosts, generate the apache config
 
@@ -105,15 +112,15 @@ vhosts.each_pair do |hostname, paths|
 
       passenger_paths paths
 
-      http_port inst['apache']['http_port'] || (inst['base_uri'].scheme == "http" && inst['base_uri'].port) || "80"
-      https_port inst['apache']['https_port'] || (inst['base_uri'].scheme == "https" && inst['base_uri'].port) || "443"
-
+      http_port  (inst['base_uri'].scheme == "http"  && inst['base_uri'].port) || inst['apache']['http_port']  || "80"
+      https_port (inst['base_uri'].scheme == "https" && inst['base_uri'].port) || inst['apache']['https_port'] || "443"
       ssl (inst['base_uri'].scheme == "https")
+      force_ssl (inst['external_uri'].scheme == "https")
       ssl_certificate_file inst['apache']['ssl_certificate_file']
       ssl_key_file inst['apache']['ssl_key_file']
       ssl_ca_certificate_file inst['apache']['ssl_ca_certificate_file']
 
-      serve_aliases inst['apache'][:serve_aliases]
+      serve_aliases inst['apache']['serve_aliases']
 
       template node['chiliproject']['apache']['template']
       cookbook node['chiliproject']['apache']['cookbook']
@@ -142,18 +149,26 @@ vhosts.each_pair do |hostname, paths|
         group inst['group']
       end
 
-      http_port = (inst['base_uri'].scheme == "http" && inst['base_uri'].port) || inst['apache']['http_port'] || "80"
-      if web_app_params['http_port'].nil? || web_app_params['http_port'] == http_port
-        web_app_params['http_port'] = http_port
+      protocol_settings = {}
+      protocol_settings['force_ssl'] = (inst['external_uri'].scheme == "https")
+      if inst['base_uri'].scheme == "http"
+        protocol_settings['http_port'] = inst['base_uri'].port
+        protocol_settings['https_port'] = inst['apache']['https_port'] || "443"
+        protocol_settings['ssl'] = false
+      elsif inst['base_uri'].scheme == "https"
+        protocol_settings['http_port'] = inst['apache']['http_port'] || "80"
+        protocol_settings['https_port'] = inst['base_uri'].port
+        protocol_settings['ssl'] = true
       else
-        raise "Two or more ChiliProject sub path instances have different http ports defined"
+        raise "Unexpected protocol in base_uri for ChiliProject #{inst['id']}"
       end
 
-      https_port = (inst['base_uri'].scheme == "https" && inst['base_uri'].port) || inst['apache']['https_port'] || "443"
-      if web_app_params['https_port'].nil? || web_app_params['https_port'] == http_port
-        web_app_params['https_port'] = https_port
-      else
-        raise "Two or more ChiliProject sub path instances have different https ports defined"
+      %w[http_port https_port ssl force_ssl].each do |key|
+        if web_app_params[key].nil? || web_app_params[keys] == protocol_settings[key]
+          web_app_params[key] = protocol_settings[key]
+        else
+          raise "Two or more ChiliProject sub path instances differ in their effective #{key} value"
+        end
       end
 
       %w(ssl_certificate_file ssl_key_file ssl_ca_certificate_file serve_aliases template cookbook).each do |key|
@@ -188,12 +203,11 @@ vhosts.each_pair do |hostname, paths|
 end
 
 ##########################################################################
-# 4. Disable the default Apache vhost
+# 3. Disable the default Apache vhost
 
 apache_site "000-default" do
   enable !vhosts.any?
 end
-
 
 ##########################################################################
 # 4. restart instances if necessary
