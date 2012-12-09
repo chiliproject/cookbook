@@ -37,7 +37,7 @@ module ChiliProject
 
         inst['database'] = chiliproject_database(inst)
         inst['rails_env'] ||= node.chef_environment =~ /_default/ ? 'production' : node.chef_environment.to_s
-        inst['apache'] = node['chiliproject']['apache'].merge(inst['apache'] || {}) do |key, old_value, new_value|
+        inst['apache'] = node['chiliproject']['apache'].to_hash.merge(inst['apache'] || {}) do |key, old_value, new_value|
           # The document root can only be set on the node
           %w[document_root].include?(key) ? old_value : new_value
         end

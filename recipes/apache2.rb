@@ -120,7 +120,7 @@ vhosts.each_pair do |hostname, paths|
       ssl_key_file inst['apache']['ssl_key_file']
       ssl_ca_certificate_file inst['apache']['ssl_ca_certificate_file']
 
-      serve_aliases inst['apache'][:serve_aliases]
+      serve_aliases inst['apache']['serve_aliases']
 
       template node['chiliproject']['apache']['template']
       cookbook node['chiliproject']['apache']['cookbook']
