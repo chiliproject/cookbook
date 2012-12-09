@@ -270,7 +270,7 @@ For Subversion hosting, we use `mod_dav_svn` module for Apache, for Git we use t
 
 Since we can only have one instance of the `ChiliProject.pm` module enabled per server which is thus shared between all ChiliProject instances, we have to select one instance to provide the module. It is important that you chose one which is compatible with all your instances. By default, we chose the first instance found, but you can override that by setting `node['chiliproject']['instance_for_chiliproject_pm']` (e.g. in a role).
 
-By default, we do not enable repository hosting. To enable one or more repository types, add the respective type to the array of `node['chiliproject']['instance_for_chiliproject_pm']` to enable them for all instances or set the array `instance['instance_for_chiliproject_pm']`. The values are deep merged between the node attribute and the instance. The valid values for the respective repository types are:
+By default, we do not enable repository hosting. To enable one or more repository types, add the respective type to the array of `node['chiliproject']['repository_hosting']` to enable them for all instances or set the array `instance['repository_hosting']`. The values are *not* merged between the node attribute and the instance, the instance databag has preference. The valid values for the respective repository types are:
 
 * `"subversion"`
 * `"git"`
