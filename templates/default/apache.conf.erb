@@ -18,7 +18,7 @@
     Order Deny,Allow
     Deny from all
     Allow from 127.0.0.1
-    Allow from <%= node[:ipaddress] %>
+    Allow from <%= node['ipaddress'] %>
     <% else %>
     Order Allow,Deny
     Allow from all
@@ -40,7 +40,7 @@
     Order Deny,Allow
     Deny from all
     Allow from 127.0.0.1
-    Allow from <%= node[:ipaddress] %>
+    Allow from <%= node['ipaddress'] %>
   </Location>
 
   <% if inst['repository_hosting'].include?('subversion') %>
@@ -89,7 +89,7 @@
     Order Deny,Allow
     Deny from all
     Allow from 127.0.0.1
-    Allow from <%= node[:ipaddress] %>
+    Allow from <%= node['ipaddress'] %>
   </Location>
 
   # Deflate
@@ -233,7 +233,7 @@
     Order Deny,Allow
     Deny from all
     Allow from 127.0.0.1
-    Allow from <%= node[:ipaddress] %>
+    Allow from <%= node['ipaddress'] %>
   </Location>
 
   RewriteEngine On
