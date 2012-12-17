@@ -401,9 +401,10 @@ define :chiliproject, :name => "default", :instance => nil do
       #########################################################################
       # Select the bundler groups and install them
 
-      deployment_flag = "--deployment" if File.exists?("#{inst['deploy_to']}/Gemfile.lock")
-      deployment_flag ||= "--path vendor/bundle" if inst['bundle_vendor']
-      if deployment_flag
+      deployment_flag = ''
+      deployment_flag << " --deployment" if File.exists?("#{inst['deploy_to']}/Gemfile.lock")
+      deployment_flag << " --path vendor/bundle" if inst['bundle_vendor']
+      if deployment_flag != ""
         execute "bundle install #{deployment_flag} --without #{ignored_bundler_groups.join(' ')}" do
           cwd release_path
           user inst['user']
