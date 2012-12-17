@@ -477,6 +477,11 @@ define :chiliproject, :name => "default", :instance => nil do
       end
     end
 
+    purge_before_symlink %w[tmp]
+    symlinks({
+      "tmp" => "tmp"
+    })
+
     symlink_before_migrate({
       "database.yml" => "config/database.yml",
       "configuration.yml" => "config/configuration.yml",
