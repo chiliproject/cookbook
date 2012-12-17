@@ -101,7 +101,7 @@ module ChiliProject
         hash['adapter'] = "postgresql"
         db_slug = "chili_#{instance['id'].downcase.gsub(/[^a-z]/, '_')}"
         hash['port'] ||= 5432
-        hash['collation'] ||= "en_US.utf8"
+        hash['collation'] ||= "en_US.UTF-8"
       else
         raise "Unknown database adapter #{hash['adapter']} specified for ChiliProject #{instance['id']}"
       end

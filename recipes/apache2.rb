@@ -74,7 +74,7 @@ data_bag("chiliproject").each do |name|
 
     ##########################################################################
     # Hosted Subversion repositories
-    if inst['repository_hosting'].include?('svn')
+    if inst['repository_hosting'].include?('subversion')
       include_recipe "subversion::client"
       include_recipe "apache2::mod_dav_svn"
 
