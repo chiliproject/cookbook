@@ -215,10 +215,6 @@ end
 instances_to_restart.uniq.each do |inst|
   if File.exists?("#{inst['deploy_to']}/current")
     d = resources(:deploy_revision => "ChiliProject #{inst['id']}")
-    d.restart_command do
-      file "#{d.deploy_to}/current/tmp/restart.txt" do
-        action :touch
-      end
-    end
+    d.restart_command "touch \"#{d.deploy_to}/current/tmp/restart.txt\""
   end
 end
