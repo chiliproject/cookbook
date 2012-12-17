@@ -235,24 +235,7 @@ define :chiliproject, :name => "default", :instance => nil do
   end
 
   #############################################################################
-  # Additional environment
-
-  memcached_hosts = get_hosts(inst, 'memcached')
-  if memcached_hosts && !memcached_hosts.empty?
-    memcached_hosts = memcached_hosts.collect do |node|
-      port = node['memcached']['port'] ? ":#{node['memcached']['port']}" : ""
-      "#{node['ipaddress']}#{port}"
-    end
-  else
-    memcached_hosts = nil
-  end
-  template "#{inst['deploy_to']}/shared/additional_environment.rb" do
-    source "additional_environment.rb.erb"
-    owner inst['user']
-    group inst['group']
-    mode "0440"
-    variables :name => inst['id'], :memcached_hosts => memcached_hosts
-  end
+  # Deploy helpers
 
   chiliproject_deploy_key "ChiliProject #{inst['id']}" do
     instance inst
@@ -280,13 +263,43 @@ define :chiliproject, :name => "default", :instance => nil do
   end
 
   #############################################################################
-  # Create additional configuration files
+  # Additional environment
+
+  memcached_hosts = get_hosts(inst, 'memcached')
+  if memcached_hosts && !memcached_hosts.empty?
+    memcached_hosts = memcached_hosts.collect do |node|
+      port = node['memcached']['port'] ? ":#{node['memcached']['port']}" : ""
+      "#{node['ipaddress']}#{port}"
+    end
+  else
+    memcached_hosts = nil
+  end
+
+  template "#{inst['deploy_to']}/shared/additional_environment.rb" do
+    source "additional_environment.rb.erb"
+    owner inst['user']
+    group inst['group']
+    mode "0440"
+    variables :memcached_hosts => memcached_hosts, :instance => inst
+  end
+
+  #############################################################################
+  # Add additional custom config files
+
+  # If we want to override the additional_environment, we have to merge the
+  # custom template with the stuff we always need to configure.
+  custom_additional_environment = false
 
   inst['config_files'].each_pair do |name, params|
     tmpl_params = !params ? {} : params.dup
 
+    link_target = tmpl_params.delete('target') || "config/#{name}"
+    if link_target == 'config/additional_environment.rb' || name == "additional_environment.rb"
+      raise "You can't override the additional_environment.rb file. Use additional_environment_custom.rb instead."
+    end
+
     # link the resulting config file
-    node.run_state['chiliproject_deploy_symlinks'][name] = tmpl_params.delete('target') || "config/#{name}"
+    node.run_state['chiliproject_deploy_symlinks'][name] = link_target
 
     template "#{inst['deploy_to']}/shared/#{name}" do
       source tmpl_params.delete("source") || "#{name}.erb"

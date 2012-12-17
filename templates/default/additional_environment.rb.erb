@@ -9,8 +9,14 @@
 
 <% if @memcached_hosts %>
 # Setup Memcached
-config.cache_store = :mem_cache_store, <%= @memcached_hosts.collect{|h| "'h'"}.join ", " %>, :namespace => <%= @name %>
+config.cache_store = :mem_cache_store, <%= @memcached_hosts.collect{|h| "'h'"}.join ", " %>, :namespace => <%= @instance['id'] %>
 <% end %>
 
 # Set path to log file
 config.log_path = "<%= "#{node['chiliproject']['log_dir']}/#{@instance['id']}" %>/#{Rails.env}.log"
+
+# We load an optional user-provided environment file
+additional_environment_custom = "<%= @instance['deploy_to'] %>/current/config/additional_environment_custom.rb"
+if File.exist?(additional_environment_custom)
+  instance_eval IO.read(additional_environment_custom)
+end
