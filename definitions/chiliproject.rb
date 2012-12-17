@@ -58,7 +58,7 @@ define :chiliproject, :name => "default", :instance => nil do
     end
   end
 
-  %w[logs pids system vendor vendor/bundle].each do |dir|
+  %w[pids tmp vendor vendor/bundle].each do |dir|
     directory "#{inst['deploy_to']}/shared/#{dir}" do
       owner inst['user']
       group inst['group']
@@ -353,6 +353,18 @@ define :chiliproject, :name => "default", :instance => nil do
         group inst['group']
       end
 
+      # Link the actual log dir into the deployed ChiliProject as
+      # Rails insists of a proper logfile at its standard location
+      # for its LogTailer. Man Rails 2 sucks...
+      directory File.join(release_path, "log") do
+        action :delete
+        recursive true
+      end
+      link File.join(release_path, "log") do
+        to inst['log_dir']
+        owner inst['user']
+        group inst['group']
+      end
 
       #########################################################################
       # Link the plugins into place

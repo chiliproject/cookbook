@@ -13,6 +13,4 @@ config.cache_store = :mem_cache_store, <%= @memcached_hosts.collect{|h| "'h'"}.j
 <% end %>
 
 # Set path to log file
-config.logger = ActiveSupport::BufferedLogger.new("<%= "#{node['chiliproject']['log_dir']}/#{@name}" %>/#{Rails.env}.log")
-config.logger.auto_flushing = false
-config.logger.level = ActiveSupport::BufferedLogger.const_get(config.log_level.to_s.upcase)
+config.log_path = "<%= "#{node['chiliproject']['log_dir']}/#{@instance['id']}" %>/#{Rails.env}.log"
