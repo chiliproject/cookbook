@@ -138,8 +138,8 @@ module ChiliProject
       unless instance['database']['adapter'] == "sqlite3"
         info[:host] = instance['database']['host']
         info[:port] = instance['database']['port']
-        info[:username] = instance['database']['superuser']
-        info[:password] = instance['database']['superuser_password']
+        info[:username] = instance['database']['superuser'] if instance['database']['superuser']
+        info[:password] = instance['database']['superuser_password'] if instance['database']['superuser_password']
       end
 
       case instance['database']['adapter']
