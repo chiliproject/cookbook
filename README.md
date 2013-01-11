@@ -121,6 +121,8 @@ Instance attributes have always precedence.
 * `force_deploy` - Force a full deployment even if the specified SHA hash is already deployed. By default `false`.
 * `migrate` - Run migrations if necessary. By default `true`.
 * `deploy_key` -  The private SSH key used for authenticating to the remote repository via SSH. Set this only if required.
+* `user` - The user which will be create for this instance. Uses the instance name prefixed with `chili_` by default.
+* `group` - The group which will be created for this instance. Uses the same name as the `user` by default
 * `netrc` -  Necessary credentials to access private repository server over HTTP. Set this only if required.
   * `netrc['hostname']` - The hostname to authenticate to, i.e. the hostname of the repository server.
   * `netrc['username']` - The username used for authenticating to the remote repository
