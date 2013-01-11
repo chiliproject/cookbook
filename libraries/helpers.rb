@@ -65,8 +65,8 @@ module ChiliProject
         hosts.collect do |host|
           node = Chef::Node.new
           node.name host
-          node.hostname host
-          node.ipaddress host
+          node.set['hostname'] = host
+          node.set['ipaddress'] = host
           node
         end
       end
