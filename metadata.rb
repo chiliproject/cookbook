@@ -1,3 +1,4 @@
+name             "chiliproject"
 maintainer       "ChiliProject Community"
 maintainer_email "info@chiliproject.org"
 license          "MIT"
