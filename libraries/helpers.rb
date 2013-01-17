@@ -7,6 +7,41 @@ module ChiliProject
       node.run_state['chiliproject_instances'][name.to_s] ||= begin
         inst = data_bag_item('chiliproject', name.to_s)
 
+        if inst['includes'] && !inst['includes'].empty?
+          includes = Array(inst['includes']).reverse
+          seen_includes = []
+
+          while incl = includes.pop
+            # normalize the data bag name to check for inclusion to break loops
+            if incl.is_a?(String)
+              data_bag, item = incl.split('::', 2)
+              data_bag ||= "chiliproject"
+            else
+              data_bag, item = incl["name"].split('::', 2)
+              data_bag ||= (incl["data_bag"] || "chiliproject")
+            end
+            next if seen_includes.include?("#{data_bag}::#{item}")
+
+            if incl.is_a?(String)
+              included_item = data_bag_item(data_bag, item)
+            else
+              if incl["secret"]
+                secret = incl["secret"] == true ? nil : incl["secret"]
+              elsif incl["secret_path"]
+                secret = Chef::EncryptedDataBagItem.load_secret(incl["secret_path"])
+              end
+              included_item = Chef::EncryptedDataBagItem.load(data_bag, item, secret)
+            end
+
+            if included_item['includes'] && !included_item['includes'].empty?
+              includes.push(*Array(included_item["includes"]).reverse)
+            end
+            seen_includes << "#{data_bag}::#{item}"
+
+            inst = Chef::Mixin::DeepMerge.merge(included_item, inst)
+          end
+        end
+
         # Set up sane defaults
         inst['user'] ||= "chili_#{inst['id'].downcase.gsub(/[^a-z]/, '_')}"
         inst['group'] ||= inst['user']
