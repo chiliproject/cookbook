@@ -6,7 +6,7 @@ include_recipe "chiliproject::database"
 # Then deploy the ChiliProject instances
 include_recipe "git"
 
-data_bag("chiliproject").each do |name|
+data_bag(node["chiliproject"]["databag"]).each do |name|
   inst = chiliproject_instance(name)
   chiliproject name do
     instance inst

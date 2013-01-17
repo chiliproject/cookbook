@@ -16,6 +16,9 @@ default['chiliproject']['shared_dir'] = "/opt/chiliproject/shared"
 # This value can be overwritten in instance databags.
 default['chiliproject']['log_dir'] = "/var/log/chiliproject"
 
+# The data bag which contains all the ChiliProject instance definitions
+# to be installed on the current host
+default['chiliproject']['databag'] = "chiliproject"
 
 ##############################################################################
 # Deployment options

@@ -12,7 +12,7 @@ instances_to_restart = []
 ##########################################################################
 # 1. Match the instances to vhosts. We use the base_uri parameter here
 
-data_bag("chiliproject").each do |name|
+data_bag(node["chiliproject"]["databag"]).each do |name|
   inst = chiliproject_instance(name)
 
   vhosts[inst['base_uri'].host] ||= {}

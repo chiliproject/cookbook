@@ -5,7 +5,7 @@ module ChiliProject
     def chiliproject_instance(name)
       node.run_state['chiliproject_instances'] ||= {}
       node.run_state['chiliproject_instances'][name.to_s] ||= begin
-        inst = data_bag_item('chiliproject', name.to_s)
+        inst = data_bag_item(node["chiliproject"]["databag"], name.to_s)
 
         if inst['includes'] && !inst['includes'].empty?
           includes = Array(inst['includes']).reverse
@@ -15,10 +15,10 @@ module ChiliProject
             # normalize the data bag name to check for inclusion to break loops
             if incl.is_a?(String)
               data_bag, item = incl.split('::', 2)
-              data_bag ||= "chiliproject"
+              data_bag ||= node["chiliproject"]["databag"]
             else
               data_bag, item = incl["name"].split('::', 2)
-              data_bag ||= (incl["data_bag"] || "chiliproject")
+              data_bag ||= (incl["data_bag"] || node["chiliproject"]["databag"])
             end
             next if seen_includes.include?("#{data_bag}::#{item}")
 
@@ -38,6 +38,8 @@ module ChiliProject
             end
             seen_includes << "#{data_bag}::#{item}"
 
+            # Merge the existing inst into the included item, meaning the
+            # existing data wins
             inst = Chef::Mixin::DeepMerge.merge(included_item, inst)
           end
         end

@@ -1,6 +1,6 @@
 extend ChiliProject::Helpers
 
-data_bag("chiliproject").each do |name|
+data_bag(node["chiliproject"]["databag"]).each do |name|
   inst = chiliproject_instance(name)
 
   # Check if the database should be created
