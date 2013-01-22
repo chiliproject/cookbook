@@ -5,7 +5,7 @@ module ChiliProject
     def chiliproject_instance(name)
       node.run_state['chiliproject_instances'] ||= {}
       node.run_state['chiliproject_instances'][name.to_s] ||= begin
-        inst = data_bag_item(node["chiliproject"]["databag"], name.to_s)
+        inst = data_bag_item(node["chiliproject"]["databag"], name.to_s).to_hash
 
         if inst['includes'] && !inst['includes'].empty?
           includes = Array(inst['includes']).reverse
@@ -23,14 +23,14 @@ module ChiliProject
             next if seen_includes.include?("#{data_bag}::#{item}")
 
             if incl.is_a?(String)
-              included_item = data_bag_item(data_bag, item)
+              included_item = data_bag_item(data_bag, item).to_hash
             else
               if incl["secret"]
                 secret = incl["secret"] == true ? nil : incl["secret"]
               elsif incl["secret_path"]
                 secret = Chef::EncryptedDataBagItem.load_secret(incl["secret_path"])
               end
-              included_item = Chef::EncryptedDataBagItem.load(data_bag, item, secret)
+              included_item = Chef::EncryptedDataBagItem.load(data_bag, item, secret).to_hash
             end
 
             if included_item['includes'] && !included_item['includes'].empty?
