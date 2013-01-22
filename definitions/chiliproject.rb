@@ -267,9 +267,9 @@ define :chiliproject, :name => "default", :instance => nil do
 
   memcached_hosts = get_hosts(inst, 'memcached')
   if memcached_hosts && !memcached_hosts.empty?
-    memcached_hosts = memcached_hosts.collect do |node|
-      port = node['memcached']['port'] ? ":#{node['memcached']['port']}" : ""
-      "#{node['ipaddress']}#{port}"
+    memcached_hosts = memcached_hosts.collect do |mc_node|
+      port = mc_node['memcached']['port'] ? ":#{mc_node['memcached']['port']}" : ""
+      "#{mc_node['ipaddress']}#{port}"
     end
   else
     memcached_hosts = nil
