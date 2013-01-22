@@ -40,7 +40,7 @@ module ChiliProject
 
             # Merge the existing inst into the included item, meaning the
             # existing data wins
-            inst = Chef::Mixin::DeepMerge.merge(included_item, inst)
+            inst = Chef::Mixin::DeepMerge.merge(included_item, inst).to_hash
           end
         end
 
