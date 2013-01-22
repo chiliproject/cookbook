@@ -144,7 +144,7 @@ define :chiliproject, :name => "default", :instance => nil do
 
     cfg['delivery_method'] = :async_smtp
     cfg['smtp_settings'] = {
-      'address' => get_hosts(inst, 'email_delivery').first.ipaddress,
+      'address' => get_hosts(inst, 'email_delivery').first["ipaddress"],
       'port' => inst_cfg['port'] || node_cfg['port'],
       'domain' => node['fqdn'],
       'enable_starttls_auto' => true

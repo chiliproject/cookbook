@@ -145,7 +145,7 @@ module ChiliProject
 
       hash['database'] ||= db_slug
       unless hash['adapter'] == "sqlite3"
-        hash['host'] = get_hosts(instance, 'database', 'role', 'hostname').first.ipaddress
+        hash['host'] = get_hosts(instance, 'database', 'role', 'hostname').first["ipaddress"]
         hash['username'] ||= db_slug
 
         if !hash['password'] || hash['password'].strip == ""
