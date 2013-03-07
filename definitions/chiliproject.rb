@@ -108,9 +108,9 @@ define :chiliproject, :name => "default", :instance => nil do
 
   session_config = {
     'key' => "_chili_#{inst['id']}_session",
-    'session_path' => inst['base_uri'].path
+    'session_path' => inst['external_uri'].path
   }
-  session_config['secure'] = true if inst['base_uri'].scheme == "https"
+  session_config['secure'] = true if inst['external_uri'].scheme == "https"
   session_config.merge!(inst['session']) if inst['session']
   template "#{inst['deploy_to']}/shared/session_store.rb" do
     source "session_store.rb.erb"
@@ -132,9 +132,9 @@ define :chiliproject, :name => "default", :instance => nil do
   # Configure the autologin cookie similar to the session cookie
   # Can be overridden in the node and instance configuration
   configuration_default['autologin_cookie_name'] ||= "_chili_#{inst['id']}_autologin"
-  configuration_default['autologin_cookie_path'] ||= inst['base_uri']
+  configuration_default['autologin_cookie_path'] ||= inst['external_uri'].path.to_s
   unless configuration_default.has_key?("autologin_cookie_secure")
-    configuration_default['autologin_cookie_secure'] = true if inst['base_uri'].scheme == "https"
+    configuration_default['autologin_cookie_secure'] = true if inst['external_uri'].scheme == "https"
   end
 
   configuration_production = {'email_delivery' => {}}
