@@ -14,9 +14,12 @@ define :chiliproject, :name => "default", :instance => nil do
 
   # Reset the list of additional files to symlink before migration
   # These can be amended by sub definitions
-  node.run_state['chiliproject_deploy_symlinks'] = {}
-  node.run_state['chiliproject_plugin_symlinks'] = {}
-  node.run_state['chiliproject_plugin_callbacks'] = {}
+  node.run_state['chiliproject_deploy_symlinks'] ||= {}
+  node.run_state['chiliproject_deploy_symlinks'][inst['id']] = {}
+  node.run_state['chiliproject_plugin_symlinks'] ||= {}
+  node.run_state['chiliproject_plugin_symlinks'][inst['id']] = {}
+  node.run_state['chiliproject_plugin_callbacks'] ||= {}
+  node.run_state['chiliproject_plugin_callbacks'][inst['id']] = {}
 
   #############################################################################
   # Install package dependencies
@@ -247,7 +250,7 @@ define :chiliproject, :name => "default", :instance => nil do
   #############################################################################
   # Install plugins
 
-  chiliproject_plugins do
+  chiliproject_plugins inst["id"] do
     instance inst
   end
 
@@ -299,7 +302,7 @@ define :chiliproject, :name => "default", :instance => nil do
     end
 
     # link the resulting config file
-    node.run_state['chiliproject_deploy_symlinks'][name] = link_target
+    node.run_state['chiliproject_deploy_symlinks'][inst["id"]][name] = link_target
 
     template "#{inst['deploy_to']}/shared/#{name}" do
       source tmpl_params.delete("source") || "#{name}.erb"
@@ -384,7 +387,7 @@ define :chiliproject, :name => "default", :instance => nil do
 
       # We have to do this by hand as it's too late for bundle install when
       # using symlink_before_migrate
-      node.run_state['chiliproject_plugin_symlinks'].each_pair do |source, target|
+      node.run_state['chiliproject_plugin_symlinks'][inst["id"]].each_pair do |source, target|
         link File.join(release_path, target) do
           to source
           owner inst['user']
@@ -467,7 +470,7 @@ define :chiliproject, :name => "default", :instance => nil do
       end
 
       current_release = release_path
-      node.run_state['chiliproject_plugin_callbacks'].each do |name, info|
+      node.run_state['chiliproject_plugin_callbacks'][inst["id"]].each do |name, info|
         send(info['callback'], name) do
           action :before_migrate
           instance inst
@@ -488,12 +491,12 @@ define :chiliproject, :name => "default", :instance => nil do
       "session_store.rb" => "config/initializers/session_store.rb",
       "additional_environment.rb" => "config/additional_environment.rb"
     })
-    symlink_before_migrate.merge! node.run_state['chiliproject_deploy_symlinks']
+    symlink_before_migrate.merge! node.run_state['chiliproject_deploy_symlinks'][inst["id"]]
 
     %w[before_symlink before_restart after_restart].each do |cb|
       send(cb.to_sym) do
         current_release = release_path
-        node.run_state['chiliproject_plugin_callbacks'].each do |name, info|
+        node.run_state['chiliproject_plugin_callbacks'][inst["id"]].each do |name, info|
           send(info['callback'], name) do
             action cb.to_sym
             instance inst

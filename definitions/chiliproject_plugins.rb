@@ -71,11 +71,11 @@ define :chiliproject_plugins, :name => nil, :instance => {} do
       release_slug = plugin_provider.send(:release_slug)
 
       plugin['release_path'] = plugin['deploy_to'] + "/releases/#{release_slug}"
-      node.run_state['chiliproject_plugin_symlinks'].merge!(
+      node.run_state['chiliproject_plugin_symlinks'][inst["id"]].merge!(
         plugin['release_path'] => "vendor/plugins/#{name}"
       )
       if plugin['callback']
-        node.run_state['chiliproject_plugin_callbacks'][name] = {
+        node.run_state['chiliproject_plugin_callbacks'][inst["id"]][name] = {
           'callback' => plugin['callback'],
           'plugin' => plugin
         }
@@ -94,7 +94,7 @@ define :chiliproject_plugins, :name => nil, :instance => {} do
   existing_plugins = Dir.glob("#{inst['deploy_to']}/current/vendor/plugins/*").select{|f| File.symlink?(f)}
   # To play it save, we select only plugins that are handled by us
   existing_plugins.select{|p| File.readlink(p).start_with?("#{inst['deploy_to']}/shared/plugins")}
-  new_plugins = node.run_state['chiliproject_plugin_symlinks'].values.collect{|p| "#{inst['deploy_to']}/current/#{p}"}
+  new_plugins = node.run_state['chiliproject_plugin_symlinks'][inst["id"]].values.collect{|p| "#{inst['deploy_to']}/current/#{p}"}
 
   if plugin_updated || (existing_plugins.sort != new_plugins.sort)
     Chef::Log.info "Forcing deployment of ChiliProject instance #{inst['id']} as one or more plugins were updated, installed, or removed"
